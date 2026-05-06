@@ -1,0 +1,243 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userClients UserClient[]
+  campaigns   Campaign[]
+  contents    ContentAsset[]
+
+  @@index([email])
+}
+
+enum UserRole {
+  ADMIN
+  ACCOUNT_MANAGER
+  VIEWER
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  website   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userClients       UserClient[]
+  platformAccounts  PlatformAccount[]
+  campaigns         Campaign[]
+  contentAssets     ContentAsset[]
+
+  @@index([name])
+}
+
+model UserClient {
+  id        String   @id @default(cuid())
+  userId    String
+  clientId  String
+  role      ClientRole @default(MANAGER)
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clientId])
+  @@index([userId])
+  @@index([clientId])
+}
+
+enum ClientRole {
+  OWNER
+  MANAGER
+  VIEWER
+}
+
+model PlatformAccount {
+  id                String   @id @default(cuid())
+  clientId          String
+  platform          Platform
+  platformAccountId String   // Facebook Ad Account ID, Google Customer ID, etc.
+  accessToken       String   // Encrypted
+  refreshToken      String?  // Encrypted (if available)
+  tokenExpiry       DateTime?
+  status            String   @default("active")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  client    Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  campaigns Campaign[]
+
+  @@unique([clientId, platform, platformAccountId])
+  @@index([clientId])
+}
+
+enum Platform {
+  FACEBOOK
+  GOOGLE
+  LINKEDIN
+}
+
+model Campaign {
+  id                   String   @id @default(cuid())
+  clientId             String
+  platformAccountId    String
+  name                 String
+  description          String?
+  objective            String   // e.g., "REACH", "CONVERSIONS", "ENGAGEMENT"
+  budget               Float
+  dailyBudget          Float?
+  startDate            DateTime
+  endDate              DateTime?
+  status               CampaignStatus @default(DRAFT)
+  targetAudience       Json?    // JSON object for targeting parameters
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  createdBy            String
+
+  client         Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  platformAccount PlatformAccount @relation(fields: [platformAccountId], references: [id], onDelete: Cascade)
+  ads            Ad[]
+  user           User            @relation(fields: [createdBy], references: [id])
+
+  @@index([clientId])
+  @@index([platformAccountId])
+  @@index([status])
+}
+
+enum CampaignStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  COMPLETED
+  FAILED
+}
+
+model Ad {
+  id          String   @id @default(cuid())
+  campaignId  String
+  platform    Platform
+  title       String
+  body        String
+  imageUrl    String?
+  videoUrl    String?
+  linkUrl     String?
+  ctaText     String?
+  status      AdStatus @default(DRAFT)
+  scheduledAt DateTime?
+  postedAt    DateTime?
+  platformAdId String?  // ID from the platform after posting
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  campaign    Campaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  metrics     AdMetric[]
+
+  @@index([campaignId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+enum AdStatus {
+  DRAFT
+  SCHEDULED
+  POSTED
+  FAILED
+  PAUSED
+  REJECTED
+}
+
+model ContentAsset {
+  id        String   @id @default(cuid())
+  clientId  String
+  type      String   // "image", "video", "copy"
+  title     String
+  url       String?  // S3 URL or similar
+  content   String?  // For copy/text content
+  tags      String[] // For categorization
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdBy String
+
+  @@index([clientId])
+  @@index([type])
+}
+
+model AdMetric {
+  id           String   @id @default(cuid())
+  adId         String
+  date         DateTime
+  impressions  Int      @default(0)
+  clicks       Int      @default(0)
+  conversions  Int      @default(0)
+  spend        Float    @default(0)
+  ctr          Float?   // Click-through rate
+  cpc          Float?   // Cost per click
+  cpa          Float?   // Cost per action
+  roas         Float?   // Return on ad spend
+  updatedAt    DateTime @updatedAt
+
+  ad Ad @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  @@unique([adId, date])
+  @@index([adId])
+  @@index([date])
+}
+
+model ScheduledJob {
+  id        String   @id @default(cuid())
+  adId      String?
+  campaignId String?
+  jobType   String   // "POST_AD", "SYNC_METRICS", etc.
+  status    JobStatus @default(PENDING)
+  scheduledFor DateTime
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([scheduledFor])
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String   // "CREATE_CAMPAIGN", "POST_AD", etc.
+  resource  String   // "Campaign", "Ad", etc.
+  resourceId String
+  changes   Json?    // What changed
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}

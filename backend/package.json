@@ -1,0 +1,37 @@
+{
+  "name": "@ad-manager/backend",
+  "version": "0.1.0",
+  "description": "Backend for ad management platform",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "jsonwebtoken": "^9.1.0",
+    "bcryptjs": "^2.4.3",
+    "@prisma/client": "^5.3.1",
+    "bull": "^4.11.4",
+    "redis": "^4.6.10",
+    "axios": "^1.5.0",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.20",
+    "@types/node": "^20.8.1",
+    "@types/jsonwebtoken": "^9.0.4",
+    "@types/bcryptjs": "^2.4.2",
+    "typescript": "^5.2.2",
+    "ts-node": "^10.9.1",
+    "@types/jest": "^29.5.5",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "prisma": "^5.3.1"
+  }
+}
