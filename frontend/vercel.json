@@ -1,6 +1,5 @@
 {
   "buildCommand": "mkdir -p build && cp public/app.html build/index.html",
   "outputDirectory": "build",
-  "installCommand": "echo 'No install needed'",
-  "framework": "create-react-app"
+  "installCommand": "echo 'No install needed'"
 }
