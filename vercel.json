@@ -1,8 +1,8 @@
 {
-  "buildCommand": "mkdir -p build && cp frontend/public/index.html build/index.html",
-  "outputDirectory": "build",
+  "buildCommand": "cp public/index.html public/index.html",
+  "outputDirectory": "public",
   "installCommand": "echo 'No install needed'",
-  "public": false,
+  "public": true,
   "rewrites": [
     {
       "source": "/(.*)",

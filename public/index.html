@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdFlow - Client Success Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border: #475569;
+            --gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            padding: 2rem 0;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .logo {
+            padding: 0 2rem;
+            margin-bottom: 3rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-label {
+            padding: 0 2rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-item {
+            padding: 0.75rem 2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .nav-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(99, 102, 241, 0.2);
+            border-left-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            margin-left: 280px;
+            background: var(--bg-dark);
+        }
+
+        .header {
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-dark) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 1.875rem;
+            font-weight: 700;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .stat-item {
+            text-align: right;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .content {
+            padding: 2rem;
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        /* Cards and Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .grid-4 {
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.1);
+            transform: translateY(-4px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-icon {
+            font-size: 1.5rem;
+            opacity: 0.5;
+        }
+
+        .metric {
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .metric:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .metric-change {
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            color: var(--success);
+        }
+
+        /* Stat Card */
+        .stat-card {
+            background: var(--gradient);
+            color: white;
+            border: none;
+        }
+
+        .stat-card .card-title {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Table */
+        .table-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        tr:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .badge-primary {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary);
+        }
+
+        /* Buttons */
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        button.secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        button.secondary:hover {
+            background: var(--border);
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--bg-secondary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            float: right;
+            background: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            border: none;
+            padding: 0;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        /* Charts */
+        .chart-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-bar {
+            display: flex;
+            align-items: flex-end;
+            gap: 1rem;
+            height: 250px;
+        }
+
+        .bar {
+            flex: 1;
+            background: var(--gradient);
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            min-height: 20px;
+            transition: all 0.3s;
+        }
+
+        .bar:hover {
+            opacity: 0.8;
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Alert */
+        .alert {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-left: 4px solid var(--success);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            color: var(--text-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; height: auto; position: static; }
+            .main { margin-left: 0; }
+            .grid { grid-template-columns: 1fr; }
+            .header-stats { flex-direction: column; gap: 1rem; text-align: left; }
+        }
+
+        .client-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .client-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.1);
+        }
+
+        .client-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .client-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .client-industry {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .video-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .video-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.1);
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            height: 120px;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .video-info {
+            padding: 1rem;
+        }
+
+        .video-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .video-status {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="logo"><i class="fas fa-rocket"></i> AdFlow</div>
+            
+            <div class="nav-section">
+                <div class="nav-label">Main</div>
+                <button class="nav-item active" onclick="switchPage('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</button>
+                <button class="nav-item" onclick="switchPage('clients')"><i class="fas fa-users"></i> Clients</button>
+                <button class="nav-item" onclick="switchPage('campaigns')"><i class="fas fa-bullhorn"></i> Campaigns</button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-label">Automation</div>
+                <button class="nav-item" onclick="switchPage('content')"><i class="fas fa-video"></i> Content Library</button>
+                <button class="nav-item" onclick="switchPage('scheduling')"><i class="fas fa-calendar"></i> Scheduling</button>
+                <button class="nav-item" onclick="switchPage('posting')"><i class="fas fa-share"></i> Auto-Posting</button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-label">Analytics</div>
+                <button class="nav-item" onclick="switchPage('performance')"><i class="fas fa-chart-bar"></i> Performance</button>
+                <button class="nav-item" onclick="switchPage('insights')"><i class="fas fa-lightbulb"></i> AI Insights</button>
+                <button class="nav-item" onclick="switchPage('optimization')"><i class="fas fa-magic"></i> Optimization</button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-label">Management</div>
+                <button class="nav-item" onclick="switchPage('settings')"><i class="fas fa-cog"></i> Settings</button>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main">
+            <!-- HEADER -->
+            <div class="header">
+                <div class="header-title">Dashboard</div>
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Active Clients</div>
+                        <div class="stat-value">12</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Monthly Reach</div>
+                        <div class="stat-value">2.4M</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Avg. ROI</div>
+                        <div class="stat-value">340%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DASHBOARD PAGE -->
+            <div id="dashboard" class="content active">
+                <div class="alert">
+                    <i class="fas fa-check-circle"></i> All systems operational • Last sync: 2 minutes ago
+                </div>
+
+                <h2 style="margin-bottom: 1.5rem;">Client Performance Overview</h2>
+                <div class="grid grid-4">
+                    <div class="card stat-card">
+                        <div class="card-header">
+                            <div class="card-title">Total Posts</div>
+                            <div class="card-icon"><i class="fas fa-share-alt"></i></div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">This Month</div>
+                            <div class="metric-value">156</div>
+                            <div class="metric-change">↑ 24% from last month</div>
+                        </div>
+                    </div>
+
+                    <div class="card stat-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                        <div class="card-header">
+                            <div class="card-title">Total Reach</div>
+                            <div class="card-icon"><i class="fas fa-eye"></i></div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">This Month</div>
+                            <div class="metric-value">2.4M</div>
+                            <div class="metric-change">↑ 12% growth</div>
+                        </div>
+                    </div>
+
+                    <div class="card stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <div class="card-header">
+                            <div class="card-title">Engagement</div>
+                            <div class="card-icon"><i class="fas fa-heart"></i></div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Avg. Rate</div>
+                            <div class="metric-value">4.2%</div>
+                            <div class="metric-change">↑ 0.8% improvement</div>
+                        </div>
+                    </div>
+
+                    <div class="card stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                        <div class="card-header">
+                            <div class="card-title">Conversions</div>
+                            <div class="card-icon"><i class="fas fa-shopping-cart"></i></div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">This Month</div>
+                            <div class="metric-value">1.8k</div>
+                            <div class="metric-change">↑ 18% vs last month</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Weekly Performance</div>
+                    <div class="chart-bar">
+                        <div class="bar" style="height: 65%;">
+                            <div class="bar-label">Mon</div>
+                        </div>
+                        <div class="bar" style="height: 55%;">
+                            <div class="bar-label">Tue</div>
+                        </div>
+                        <div class="bar" style="height: 75%;">
+                            <div class="bar-label">Wed</div>
+                        </div>
+                        <div class="bar" style="height: 85%;">
+                            <div class="bar-label">Thu</div>
+                        </div>
+                        <div class="bar" style="height: 90%;">
+                            <div class="bar-label">Fri</div>
+                        </div>
+                        <div class="bar" style="height: 70%;">
+                            <div class="bar-label">Sat</div>
+                        </div>
+                        <div class="bar" style="height: 60%;">
+                            <div class="bar-label">Sun</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 style="margin-bottom: 1.5rem;">Top Performing Clients</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Client</th>
+                                <th>Posts</th>
+                                <th>Reach</th>
+                                <th>Engagement</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr onclick="switchPage('clients')">
+                                <td><strong>Luxury Fashion Co</strong></td>
+                                <td>45</td>
+                                <td>850k</td>
+                                <td>5.2%</td>
+                                <td><span class="badge badge-success">Excellent</span></td>
+                            </tr>
+                            <tr onclick="switchPage('clients')">
+                                <td><strong>Tech Innovations Inc</strong></td>
+                                <td>38</td>
+                                <td>720k</td>
+                                <td>4.8%</td>
+                                <td><span class="badge badge-success">Great</span></td>
+                            </tr>
+                            <tr onclick="switchPage('clients')">
+                                <td><strong>E-Commerce Plus</strong></td>
+                                <td>32</td>
+                                <td>620k</td>
+                                <td>3.9%</td>
+                                <td><span class="badge badge-warning">Good</span></td>
+                            </tr>
+                            <tr onclick="switchPage('clients')">
+                                <td><strong>Real Estate Group</strong></td>
+                                <td>28</td>
+                                <td>580k</td>
+                                <td>3.5%</td>
+                                <td><span class="badge badge-warning">Monitor</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- CLIENTS PAGE -->
+            <div id="clients" class="content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>Client Success Dashboard</h2>
+                    <button onclick="alert('Add new client form opening...')">+ New Client</button>
+                </div>
+
+                <div class="client-card" onclick="alert('Viewing: Luxury Fashion Co\n\nPosts: 45\nReach: 850k\nEngagement: 5.2%\n\nRevenue: $48,500/month')">
+                    <div class="client-header">
+                        <div>
+                            <div class="client-name">👗 Luxury Fashion Co</div>
+                            <div class="client-industry">Fashion & Apparel</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="stat-value" style="color: var(--primary); margin-bottom: 0.25rem;">5.2%</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Engagement Rate</div>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                        <div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Posts</div>
+                            <div style="font-size: 1.25rem; font-weight: 600;">45</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Reach</div>
+                            <div style="font-size: 1.25rem; font-weight: 600;">850k</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Revenue</div>
+                            <div style="font-size: 1.25rem; font-weight: 600;">$48.5k</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Status</div>
+                            <div style="font-size: 1.25rem; font-weight: 600;"><span class="badge badge-success">Active</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="client-card" onclick="alert('Viewing: Tech Innovations Inc\n\nPosts: 38\nReach: 720k\nEngagement: 4.8%\n\nRevenue: $42,800/month')">
+                    <div class="client-header">
+                        <div>
+                            <div class="client-name">💻 Tech Innovations Inc</div>
+                            <div class="client-industry">Technology</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="stat-value" style="color: var(--primary); margin-bottom: 0.25rem;">4.8%</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Engagement Rate</div>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                        <div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Posts</div>
+                            <div style="font-size: 1.25rem; font-weight: 600;">38</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Reach</div>
+                            <div style="font-size: 1.25rem; font-weight: 600;">720k</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Revenue</div>
+                            <div style="font-size: 1.25rem; font-weight: 600;">$42.8k</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Status</div>
+                            <div style="font-size: 1.25rem; font-weight: 600;"><span class="badge badge-success">Active</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="client-card" onclick="alert('Viewing: E-Commerce Plus\n\nPosts: 32\nReach: 620k\nEngagement: 3.9%\n\nRevenue: $35,200/month\n\nRecommendation: Increase posting frequency')">
+                    <div class="client-header">
+                        <div>
+                            <div class="client-name">🛒 E-Commerce Plus</div>
+                            <div class="client-industry">Retail</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="stat-value" style="color: var(--warning); margin-bottom: 0.25rem;">3.9%</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Engagement Rate</div>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                        <div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Posts</div>
+                            <div style="font-size: 1.25rem; font-weight: 600;">32</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Reach</div>
+                            <div style="font-size: 1.25rem; font-weight: 600;">620k</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Revenue</div>
+                            <div style="font-size: 1.25rem; font-weight: 600;">$35.2k</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Status</div>
+                            <div style="font-size: 1.25rem; font-weight: 600;"><span class="badge badge-warning">Monitor</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENT LIBRARY PAGE -->
+            <div id="content" class="content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>Content Library</h2>
+                    <button onclick="alert('Upload video form opening...')">+ Upload Video</button>
+                </div>
+
+                <div class="video-grid">
+                    <div class="video-card" onclick="alert('Video: Summer Collection\nClients: 3\nScheduled Posts: 12\nStatus: Ready to post')">
+                        <div class="video-thumbnail">📹</div>
+                        <div class="video-info">
+                            <div class="video-title">Summer Collection</div>
+                            <div class="video-status">3 clients • 12 posts</div>
+                        </div>
+                    </div>
+                    <div class="video-card" onclick="alert('Video: Product Demo\nClients: 5\nScheduled Posts: 8\nStatus: Posting in progress')">
+                        <div class="video-thumbnail">🎥</div>
+                        <div class="video-info">
+                            <div class="video-title">Product Demo</div>
+                            <div class="video-status">5 clients • 8 posts</div>
+                        </div>
+                    </div>
+                    <div class="video-card" onclick="alert('Video: Behind the Scenes\nClients: 2\nScheduled Posts: 6\nStatus: Scheduled')">
+                        <div class="video-thumbnail">👥</div>
+                        <div class="video-info">
+                            <div class="video-title">Behind the Scenes</div>
+                            <div class="video-status">2 clients • 6 posts</div>
+                        </div>
+                    </div>
+                    <div class="video-card" onclick="alert('Video: Customer Testimonials\nClients: 4\nScheduled Posts: 10\nStatus: Live')">
+                        <div class="video-thumbnail">⭐</div>
+                        <div class="video-info">
+                            <div class="video-title">Customer Testimonials</div>
+                            <div class="video-status">4 clients • 10 posts</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCHEDULING PAGE -->
+            <div id="scheduling" class="content">
+                <h2 style="margin-bottom: 1.5rem;">Post Scheduling</h2>
+                <button onclick="alert('Schedule new post form opening...')" style="margin-bottom: 2rem;">+ Schedule Post</button>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Content</th>
+                                <th>Platform</th>
+                                <th>Client</th>
+                                <th>Scheduled Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr onclick="alert('Details: Facebook post by Luxury Fashion Co tomorrow at 9 AM')">
+                                <td><strong>Summer Sale Announcement</strong></td>
+                                <td>📘 Facebook</td>
+                                <td>Luxury Fashion Co</td>
+                                <td>Tomorrow 9:00 AM</td>
+                                <td><span class="badge badge-primary">Scheduled</span></td>
+                            </tr>
+                            <tr onclick="alert('Details: Instagram Reel by Tech Innovations in 2 hours')">
+                                <td><strong>Product Demo Reel</strong></td>
+                                <td>📷 Instagram</td>
+                                <td>Tech Innovations</td>
+                                <td>In 2 hours</td>
+                                <td><span class="badge badge-success">Ready</span></td>
+                            </tr>
+                            <tr onclick="alert('Details: TikTok video by E-Commerce Plus at 6 PM')">
+                                <td><strong>Flash Sale Video</strong></td>
+                                <td>🎵 TikTok</td>
+                                <td>E-Commerce Plus</td>
+                                <td>Today 6:00 PM</td>
+                                <td><span class="badge badge-success">Ready</span></td>
+                            </tr>
+                            <tr onclick="alert('Details: LinkedIn article by Tech Innovations at 10 AM')">
+                                <td><strong>Industry Insights</strong></td>
+                                <td>💼 LinkedIn</td>
+                                <td>Tech Innovations</td>
+                                <td>Today 10:00 AM</td>
+                                <td><span class="badge badge-success">Posted</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- POSTING PAGE -->
+            <div id="posting" class="content">
+                <h2 style="margin-bottom: 1.5rem;">Auto-Posting Automation</h2>
+                
+                <div class="grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Daily Auto-Post</div>
+                            <div style="font-size: 1.25rem;">⏰</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Configured for</div>
+                            <div class="metric-value">7 clients</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Posts per week</div>
+                            <div class="metric-value">49</div>
+                        </div>
+                        <button onclick="alert('Edit auto-posting schedule')" style="margin-top: 1rem; width: 100%;">Configure</button>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Smart Scheduling</div>
+                            <div style="font-size: 1.25rem;">🧠</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">AI-optimized times</div>
+                            <div class="metric-value">Enabled</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Engagement boost</div>
+                            <div class="metric-value">+34%</div>
+                        </div>
+                        <button onclick="alert('View AI recommendations')" style="margin-top: 1rem; width: 100%;">View Tips</button>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Failed Posts</div>
+                            <div style="font-size: 1.25rem;">⚠️</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">This month</div>
+                            <div class="metric-value" style="color: var(--success);">0</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Success rate</div>
+                            <div class="metric-value" style="color: var(--success);">99.8%</div>
+                        </div>
+                        <button class="secondary" onclick="alert('No issues to review')" style="margin-top: 1rem; width: 100%;">View Logs</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INSIGHTS PAGE -->
+            <div id="insights" class="content">
+                <h2 style="margin-bottom: 1.5rem;">AI-Powered Insights & Recommendations</h2>
+
+                <div class="alert" style="background: rgba(99, 102, 241, 0.1); border-left-color: var(--primary);">
+                    <i class="fas fa-star"></i> <strong>Smart Recommendation:</strong> Increase posting frequency for E-Commerce Plus - optimal engagement window is 6-9 PM daily
+                </div>
+
+                <div class="grid">
+                    <div class="card" onclick="alert('Best performing content:\n- Carousel posts (+18%)\n- Video content (+24%)\n- User testimonials (+32%)')">
+                        <div class="card-header">
+                            <div class="card-title">Top Performers</div>
+                            <div style="font-size: 1.25rem;">🏆</div>
+                        </div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
+                            <div>✓ Carousel posts → +18%</div>
+                            <div>✓ Video content → +24%</div>
+                            <div>✓ User testimonials → +32%</div>
+                        </div>
+                    </div>
+
+                    <div class="card" onclick="alert('Optimization opportunities:\n- Test different hashtag combinations\n- Increase posting frequency\n- Feature more user-generated content')">
+                        <div class="card-header">
+                            <div class="card-title">Opportunities</div>
+                            <div style="font-size: 1.25rem;">💡</div>
+                        </div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
+                            <div>• Test hashtag combinations</div>
+                            <div>• Increase posting frequency</div>
+                            <div>• Feature UGC more</div>
+                        </div>
+                    </div>
+
+                    <div class="card" onclick="alert('Next 30-day forecast:\n- Reach growth: +28%\n- Engagement rate: Stable at 4.2%\n- Expected ROI increase: +15%')">
+                        <div class="card-header">
+                            <div class="card-title">30-Day Forecast</div>
+                            <div style="font-size: 1.25rem;">📊</div>
+                        </div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
+                            <div>📈 Reach: +28%</div>
+                            <div>💬 Engagement: Stable</div>
+                            <div>💰 ROI: +15%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PERFORMANCE PAGE -->
+            <div id="performance" class="content">
+                <h2 style="margin-bottom: 1.5rem;">Detailed Performance Analytics</h2>
+
+                <div class="chart-container">
+                    <div class="chart-title">Monthly Performance Trend</div>
+                    <div class="chart-bar">
+                        <div class="bar" style="height: 40%;"><div class="bar-label">Jan</div></div>
+                        <div class="bar" style="height: 52%;"><div class="bar-label">Feb</div></div>
+                        <div class="bar" style="height: 61%;"><div class="bar-label">Mar</div></div>
+                        <div class="bar" style="height: 73%;"><div class="bar-label">Apr</div></div>
+                        <div class="bar" style="height: 85%;"><div class="bar-label">May</div></div>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="card">
+                        <div class="metric">
+                            <div class="metric-label">Total Impressions</div>
+                            <div class="metric-value">4.2M</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="metric">
+                            <div class="metric-label">Total Clicks</div>
+                            <div class="metric-value">156k</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="metric">
+                            <div class="metric-label">Conversion Rate</div>
+                            <div class="metric-value">3.2%</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="metric">
+                            <div class="metric-label">Cost per Lead</div>
+                            <div class="metric-value">$12.50</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OPTIMIZATION PAGE -->
+            <div id="optimization" class="content">
+                <h2 style="margin-bottom: 1.5rem;">Automated Optimization</h2>
+
+                <div class="alert" style="background: rgba(16, 185, 129, 0.1); border-left-color: var(--success);">
+                    <i class="fas fa-rocket"></i> <strong>Optimization in Progress:</strong> AI is automatically adjusting posting times, hashtags, and audience targeting for maximum ROI
+                </div>
+
+                <div class="grid">
+                    <div class="card" onclick="alert('Budget allocation:\n- Luxury Fashion Co: 35%\n- Tech Innovations: 30%\n- E-Commerce Plus: 25%\n- Others: 10%')">
+                        <div class="card-header">
+                            <div class="card-title">Budget Optimization</div>
+                            <div style="font-size: 1.25rem;">💰</div>
+                        </div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
+                            <div>Allocating budget to top performers</div>
+                            <div>35% to highest ROI clients</div>
+                            <div>Real-time adjustments enabled</div>
+                        </div>
+                    </div>
+
+                    <div class="card" onclick="alert('Posting time optimization:\n- Best times identified via AI\n- 34% engagement improvement\n- Next adjustment: Tomorrow')">
+                        <div class="card-header">
+                            <div class="card-title">Posting Time Optimization</div>
+                            <div style="font-size: 1.25rem;">⏱️</div>
+                        </div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
+                            <div>AI-identified best posting windows</div>
+                            <div>Engagement boost: +34%</div>
+                            <div>Auto-adjusts daily</div>
+                        </div>
+                    </div>
+
+                    <div class="card" onclick="alert('Content optimization:\n- Testing 12 variations/week\n- Best performers scaled immediately\n- Underperformers revised')">
+                        <div class="card-header">
+                            <div class="card-title">Content Optimization</div>
+                            <div style="font-size: 1.25rem;">📝</div>
+                        </div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
+                            <div>A/B testing 12 variations/week</div>
+                            <div>Winners scaled immediately</div>
+                            <div>Performance-based</div>
+                        </div>
+                    </div>
+
+                    <div class="card" onclick="alert('Audience targeting:\n- Behavioral targeting active\n- Interest-based refinement\n- 28% better conversion')">
+                        <div class="card-header">
+                            <div class="card-title">Audience Targeting</div>
+                            <div style="font-size: 1.25rem;">🎯</div>
+                        </div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
+                            <div>Behavioral targeting active</div>
+                            <div>Interest-based refinement</div>
+                            <div>28% better conversion</div>
+                        </div>
+                    </div>
+
+                    <div class="card" onclick="alert('Platform optimization:\n- Facebook: +42% ROI\n- Instagram: +38% engagement\n- TikTok: +51% reach')">
+                        <div class="card-header">
+                            <div class="card-title">Platform-Specific</div>
+                            <div style="font-size: 1.25rem;">📱</div>
+                        </div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
+                            <div>Facebook ROI: +42%</div>
+                            <div>Instagram engagement: +38%</div>
+                            <div>TikTok reach: +51%</div>
+                        </div>
+                    </div>
+
+                    <div class="card" onclick="alert('Competitor analysis:\n- Tracking 15 competitors\n- Gap analysis weekly\n- Opportunities identified')">
+                        <div class="card-header">
+                            <div class="card-title">Competitive Analysis</div>
+                            <div style="font-size: 1.25rem;">📈</div>
+                        </div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
+                            <div>Tracking 15 competitors</div>
+                            <div>Gap analysis weekly</div>
+                            <div>Opportunities highlighted</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS PAGE -->
+            <div id="settings" class="content">
+                <h2 style="margin-bottom: 1.5rem;">Account Settings</h2>
+                
+                <div class="card">
+                    <div class="form-group">
+                        <label>Agency Name</label>
+                        <input type="text" value="AdFlow Agency" />
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" value="admin@adflow.com" />
+                    </div>
+                    <div class="form-group">
+                        <label>API Key</label>
+                        <input type="text" value="sk_live_••••••••••••••••" />
+                    </div>
+                    <button onclick="alert('✓ Settings saved!')">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchPage(pageId) {
+            // Hide all content
+            document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update header
+            const titles = {
+                dashboard: 'Dashboard',
+                clients: 'Client Success Dashboard',
+                campaigns: 'Campaigns',
+                content: 'Content Library',
+                scheduling: 'Post Scheduling',
+                posting: 'Auto-Posting Automation',
+                performance: 'Performance Analytics',
+                insights: 'AI Insights',
+                optimization: 'Automated Optimization',
+                settings: 'Settings'
+            };
+            document.querySelector('.header-title').textContent = titles[pageId] || 'AdFlow';
+        }
+    </script>
+</body>
+</html>
