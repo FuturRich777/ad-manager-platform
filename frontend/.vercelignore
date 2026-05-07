@@ -1,0 +1,16 @@
+.git
+.gitignore
+.env.local
+.env.*.local
+.vercel
+node_modules
+npm-debug.log
+.DS_Store
+._*
+Thumbs.db
+src
+tsconfig.json
+package.json
+package-lock.json
+fallback.html
+app.html
