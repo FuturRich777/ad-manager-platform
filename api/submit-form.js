@@ -1,6 +1,54 @@
 import { Resend } from 'resend';
+import PDFDocument from 'pdfkit';
+import { Readable } from 'stream';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+function generatePDF(data) {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument();
+    const chunks = [];
+
+    doc.on('data', chunk => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    doc.fontSize(24).text('Client Intake Form', { align: 'center' });
+    doc.fontSize(10).text(`Submitted: ${new Date().toLocaleString()}`, { align: 'center' });
+    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+
+    const sections = [
+      { title: '01 — About You', fields: ['full_name', 'business_name', 'email', 'phone', 'website', 'service_area', 'social_links'] },
+      { title: '02 — Goals & Vision', fields: ['content_purpose', 'goals_30_90', 'success_picture'] },
+      { title: '03 — Your Offer', fields: ['offers', 'ideal_customer', 'differentiator'] },
+      { title: '04 — Brand & Positioning', fields: ['brand_words', 'inspiration', 'brand_colors_hex', 'visual_style', 'brand_assets_link'] },
+      { title: '05 — Content & Filming', fields: ['script_topics', 'off_limits', 'content_prefs', 'oncamera_level', 'filming_availability'] },
+      { title: '06 — Working Together', fields: ['ad_budget', 'relationship', 'anything_else'] }
+    ];
+
+    const labels = {
+      full_name: 'Full Name', business_name: 'Business Name', email: 'Email', phone: 'Phone',
+      website: 'Website', service_area: 'Service Area', social_links: 'Social Links',
+      content_purpose: 'Content/Ads Purpose', goals_30_90: 'Top 1-3 Goals (30-90 days)', success_picture: 'Success Picture',
+      offers: 'Main Offers + Price', ideal_customer: 'Ideal Customer', differentiator: 'Biggest Differentiator',
+      brand_words: 'Brand Words', inspiration: 'Inspiration', brand_colors_hex: 'Brand Colors', visual_style: 'Visual Style', brand_assets_link: 'Brand Assets Link',
+      script_topics: 'Script Topics', off_limits: 'Off-Limits', content_prefs: 'Content Preferences', oncamera_level: 'On-Camera Comfort Level', filming_availability: 'Filming Availability',
+      ad_budget: 'Ad Budget', relationship: 'Great Working Relationship', anything_else: 'Anything Else'
+    };
+
+    sections.forEach(section => {
+      doc.fontSize(14).text(section.title, { underline: true });
+      doc.fontSize(10);
+      section.fields.forEach(field => {
+        const value = data[field] || 'N/A';
+        doc.text(`${labels[field]}: ${value}`);
+      });
+      doc.moveDown();
+    });
+
+    doc.end();
+  });
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -10,75 +58,19 @@ export default async function handler(req, res) {
   const { full_name, business_name, email, phone, website, service_area, social_links, content_purpose, goals_30_90, success_picture, offers, ideal_customer, differentiator, brand_words, inspiration, brand_color_1, brand_color_2, brand_color_3, brand_colors_hex, visual_style, brand_assets_link, script_topics, off_limits, content_prefs, oncamera_level, filming_availability, ad_budget, relationship, anything_else } = req.body;
 
   try {
-    const emailContent = `
-<html>
-<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
-  <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-    <h2 style="color: #13161A; border-bottom: 2px solid #1F4D3F; padding-bottom: 10px;">New Client Intake Submission</h2>
-
-    <div style="margin: 20px 0;">
-      <h3 style="color: #1F4D3F; margin-top: 20px;">01 — About You</h3>
-      <p><strong>Full Name:</strong> ${full_name || 'N/A'}</p>
-      <p><strong>Business Name:</strong> ${business_name || 'N/A'}</p>
-      <p><strong>Email:</strong> ${email || 'N/A'}</p>
-      <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
-      <p><strong>Website:</strong> ${website || 'N/A'}</p>
-      <p><strong>Service Area:</strong> ${service_area || 'N/A'}</p>
-      <p><strong>Social Links:</strong> ${social_links || 'N/A'}</p>
-    </div>
-
-    <div style="margin: 20px 0;">
-      <h3 style="color: #1F4D3F; margin-top: 20px;">02 — Goals & Vision</h3>
-      <p><strong>Content/Ads Purpose:</strong> ${content_purpose || 'N/A'}</p>
-      <p><strong>Top 1-3 Goals (30-90 days):</strong> ${goals_30_90 || 'N/A'}</p>
-      <p><strong>Success Picture:</strong> ${success_picture || 'N/A'}</p>
-    </div>
-
-    <div style="margin: 20px 0;">
-      <h3 style="color: #1F4D3F; margin-top: 20px;">03 — Your Offer</h3>
-      <p><strong>Main Offers + Price:</strong> ${offers || 'N/A'}</p>
-      <p><strong>Ideal Customer:</strong> ${ideal_customer || 'N/A'}</p>
-      <p><strong>Biggest Differentiator:</strong> ${differentiator || 'N/A'}</p>
-    </div>
-
-    <div style="margin: 20px 0;">
-      <h3 style="color: #1F4D3F; margin-top: 20px;">04 — Brand & Positioning</h3>
-      <p><strong>Brand Words:</strong> ${brand_words || 'N/A'}</p>
-      <p><strong>Inspiration:</strong> ${inspiration || 'N/A'}</p>
-      <p><strong>Brand Colors:</strong> ${brand_colors_hex || brand_color_1 + ', ' + brand_color_2 + ', ' + brand_color_3 || 'N/A'}</p>
-      <p><strong>Visual Style:</strong> ${visual_style || 'N/A'}</p>
-      <p><strong>Brand Assets Link:</strong> ${brand_assets_link || 'N/A'}</p>
-    </div>
-
-    <div style="margin: 20px 0;">
-      <h3 style="color: #1F4D3F; margin-top: 20px;">05 — Content & Filming</h3>
-      <p><strong>Script Topics:</strong> ${script_topics || 'N/A'}</p>
-      <p><strong>Off-Limits:</strong> ${off_limits || 'N/A'}</p>
-      <p><strong>Content Preferences:</strong> ${content_prefs || 'N/A'}</p>
-      <p><strong>On-Camera Comfort Level:</strong> ${oncamera_level || 'N/A'}</p>
-      <p><strong>Filming Availability:</strong> ${filming_availability || 'N/A'}</p>
-    </div>
-
-    <div style="margin: 20px 0;">
-      <h3 style="color: #1F4D3F; margin-top: 20px;">06 — Working Together</h3>
-      <p><strong>Ad Budget:</strong> ${ad_budget || 'N/A'}</p>
-      <p><strong>Great Working Relationship:</strong> ${relationship || 'N/A'}</p>
-      <p><strong>Anything Else:</strong> ${anything_else || 'N/A'}</p>
-    </div>
-
-    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 12px;">
-      <p>Submitted from your intake form at ${new Date().toLocaleString()}</p>
-    </div>
-  </div>
-</body>
-</html>
-    `;
+    const pdfBuffer = await generatePDF(req.body);
 
     await resend.emails.send({
       from: 'onboarding@resend.dev',
       to: 'olivier@minexai.ca',
       subject: `New Client Intake: ${full_name || 'Unknown'} - ${business_name || 'Unknown'}`,
-      html: emailContent,
+      html: `<h2>New Client Intake Submission</h2><p>Please see attached PDF for complete form details.</p>`,
+      attachments: [
+        {
+          filename: `intake_${Date.now()}.pdf`,
+          content: pdfBuffer,
+        }
+      ]
     });
 
     return res.status(200).json({ success: true, message: 'Form submitted successfully' });
