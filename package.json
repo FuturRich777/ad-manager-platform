@@ -8,7 +8,7 @@
     "frontend"
   ],
   "dependencies": {
-    "nodemailer": "^6.9.7"
+    "resend": "^3.0.0"
   },
   "scripts": {
     "dev": "npm run dev --workspaces",

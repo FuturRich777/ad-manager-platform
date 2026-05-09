@@ -1,4 +1,6 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -8,14 +10,6 @@ export default async function handler(req, res) {
   const { full_name, business_name, email, phone, website, service_area, social_links, content_purpose, goals_30_90, success_picture, offers, ideal_customer, differentiator, brand_words, inspiration, brand_color_1, brand_color_2, brand_color_3, brand_colors_hex, visual_style, brand_assets_link, script_topics, off_limits, content_prefs, oncamera_level, filming_availability, ad_budget, relationship, anything_else } = req.body;
 
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
     const emailContent = `
 <html>
 <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
@@ -80,9 +74,9 @@ export default async function handler(req, res) {
 </html>
     `;
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.RECIPIENT_EMAIL,
+    await resend.emails.send({
+      from: 'noreply@minexmedia.com',
+      to: 'olivier@minexai.ca',
       subject: `New Client Intake: ${full_name || 'Unknown'} - ${business_name || 'Unknown'}`,
       html: emailContent,
     });
