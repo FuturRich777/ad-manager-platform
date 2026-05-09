@@ -75,7 +75,7 @@ export default async function handler(req, res) {
     `;
 
     await resend.emails.send({
-      from: 'noreply@minexmedia.com',
+      from: 'onboarding@resend.dev',
       to: 'olivier@minexai.ca',
       subject: `New Client Intake: ${full_name || 'Unknown'} - ${business_name || 'Unknown'}`,
       html: emailContent,
