@@ -652,6 +652,10 @@
     <div class="check">✓</div>
     <h2>Got it. Talk soon.</h2>
     <p>Your intake just landed in our inbox. We'll review it and come back within one business day with next steps.</p>
+    <button id="downloadBtn" class="submit" style="margin-top:32px; display:none;">
+      Download your form
+      <span class="arrow">→</span>
+    </button>
   </div>
 
   <footer class="bottom">
@@ -664,6 +668,8 @@
 <script>
   const form = document.getElementById('intakeForm');
   const success = document.getElementById('successMsg');
+  const downloadBtn = document.getElementById('downloadBtn');
+  let formData = null;
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -672,28 +678,64 @@
     btn.innerHTML = 'Sending… <span class="arrow">→</span>';
 
     try {
-      const formData = new FormData(form);
-      const data = Object.fromEntries(formData);
+      const fd = new FormData(form);
+      formData = Object.fromEntries(fd);
 
       const response = await fetch('/api/submit-form', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(formData),
       });
 
       if (response.ok) {
         form.style.display = 'none';
         success.classList.add('active');
+        downloadBtn.style.display = 'block';
         window.scrollTo({ top: success.offsetTop - 80, behavior:'smooth' });
       } else {
         btn.disabled = false;
-        btn.innerHTML = 'Send <span class="arrow">→</span>';
+        btn.innerHTML = 'Submit intake <span class="arrow">→</span>';
         alert('Error submitting form. Please try again.');
       }
     } catch (error) {
       btn.disabled = false;
-      btn.innerHTML = 'Send <span class="arrow">→</span>';
+      btn.innerHTML = 'Submit intake <span class="arrow">→</span>';
       alert('Error submitting form. Please try again.');
+    }
+  });
+
+  downloadBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (!formData) return;
+
+    downloadBtn.disabled = true;
+    downloadBtn.innerHTML = 'Downloading… <span class="arrow">→</span>';
+
+    try {
+      const response = await fetch('/api/download-form', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `intake_form_${new Date().toISOString().split('T')[0]}.html`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('Error downloading form. Please try again.');
+      }
+    } catch (error) {
+      alert('Error downloading form. Please try again.');
+    } finally {
+      downloadBtn.disabled = false;
+      downloadBtn.innerHTML = 'Download your form <span class="arrow">→</span>';
     }
   });
 </script>
