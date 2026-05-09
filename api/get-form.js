@@ -42,6 +42,7 @@ function prefillFormHTML(formHTML, data) {
     'ad_budget': data.ad_budget,
     'relationship': data.relationship,
     'anything_else': data.anything_else,
+    'signature': data.signature,
   };
 
   for (const [fieldName, value] of Object.entries(fieldMap)) {
