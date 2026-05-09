@@ -1,5 +1,5 @@
 {
-  "buildCommand": "mkdir -p public && cp minex-intake-form-email.html public/index.html && ls -la public/",
+  "buildCommand": "cp minex-intake-form-email.html public/index.html && echo 'Files in public:' && ls -la public/",
   "outputDirectory": "public",
   "installCommand": "npm install",
   "public": true
