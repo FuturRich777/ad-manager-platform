@@ -1,53 +1,102 @@
 import { Resend } from 'resend';
-import PDFDocument from 'pdfkit';
-import { Readable } from 'stream';
+import puppeteer from 'puppeteer';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-function generatePDF(data) {
-  return new Promise((resolve, reject) => {
-    const doc = new PDFDocument();
-    const chunks = [];
+async function generatePDFFromHTML(data) {
+  let browser;
+  try {
+    browser = await puppeteer.launch({ headless: true });
+    const page = await browser.createPage();
 
-    doc.on('data', chunk => chunks.push(chunk));
-    doc.on('end', () => resolve(Buffer.concat(chunks)));
-    doc.on('error', reject);
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F2EEE5; color: #13161A; padding: 40px 20px; }
+    .container { max-width: 880px; margin: 0 auto; background: white; padding: 40px; }
+    .header { border-bottom: 1px solid #13161933; padding-bottom: 20px; margin-bottom: 40px; }
+    .header h1 { font-size: 32px; margin-bottom: 10px; }
+    .header p { color: #6E7480; font-size: 14px; }
+    .section { margin-bottom: 40px; }
+    .section h2 { font-size: 18px; color: #1F4D3F; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #1F4D3F; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em; color: #6E7480; margin-bottom: 8px; }
+    .field-value { font-size: 16px; padding: 10px; background: #FBF8F1; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Client Intake Form</h1>
+      <p>Submitted: ${new Date().toLocaleString()}</p>
+    </div>
 
-    doc.fontSize(24).text('Client Intake Form', { align: 'center' });
-    doc.fontSize(10).text(`Submitted: ${new Date().toLocaleString()}`, { align: 'center' });
-    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+    <div class="section">
+      <h2>01 — About You</h2>
+      <div class="field"><label>Full Name</label><div class="field-value">${data.full_name || ''}</div></div>
+      <div class="field"><label>Business Name</label><div class="field-value">${data.business_name || ''}</div></div>
+      <div class="field"><label>Email</label><div class="field-value">${data.email || ''}</div></div>
+      <div class="field"><label>Phone</label><div class="field-value">${data.phone || ''}</div></div>
+      <div class="field"><label>Website</label><div class="field-value">${data.website || ''}</div></div>
+      <div class="field"><label>Service Area</label><div class="field-value">${data.service_area || ''}</div></div>
+      <div class="field"><label>Social Links</label><div class="field-value">${data.social_links || ''}</div></div>
+    </div>
 
-    const sections = [
-      { title: '01 — About You', fields: ['full_name', 'business_name', 'email', 'phone', 'website', 'service_area', 'social_links'] },
-      { title: '02 — Goals & Vision', fields: ['content_purpose', 'goals_30_90', 'success_picture'] },
-      { title: '03 — Your Offer', fields: ['offers', 'ideal_customer', 'differentiator'] },
-      { title: '04 — Brand & Positioning', fields: ['brand_words', 'inspiration', 'brand_colors_hex', 'visual_style', 'brand_assets_link'] },
-      { title: '05 — Content & Filming', fields: ['script_topics', 'off_limits', 'content_prefs', 'oncamera_level', 'filming_availability'] },
-      { title: '06 — Working Together', fields: ['ad_budget', 'relationship', 'anything_else'] }
-    ];
+    <div class="section">
+      <h2>02 — Goals & Vision</h2>
+      <div class="field"><label>Content/Ads Purpose</label><div class="field-value">${data.content_purpose || ''}</div></div>
+      <div class="field"><label>Top 1-3 Goals (30-90 days)</label><div class="field-value">${data.goals_30_90 || ''}</div></div>
+      <div class="field"><label>Success Picture</label><div class="field-value">${data.success_picture || ''}</div></div>
+    </div>
 
-    const labels = {
-      full_name: 'Full Name', business_name: 'Business Name', email: 'Email', phone: 'Phone',
-      website: 'Website', service_area: 'Service Area', social_links: 'Social Links',
-      content_purpose: 'Content/Ads Purpose', goals_30_90: 'Top 1-3 Goals (30-90 days)', success_picture: 'Success Picture',
-      offers: 'Main Offers + Price', ideal_customer: 'Ideal Customer', differentiator: 'Biggest Differentiator',
-      brand_words: 'Brand Words', inspiration: 'Inspiration', brand_colors_hex: 'Brand Colors', visual_style: 'Visual Style', brand_assets_link: 'Brand Assets Link',
-      script_topics: 'Script Topics', off_limits: 'Off-Limits', content_prefs: 'Content Preferences', oncamera_level: 'On-Camera Comfort Level', filming_availability: 'Filming Availability',
-      ad_budget: 'Ad Budget', relationship: 'Great Working Relationship', anything_else: 'Anything Else'
-    };
+    <div class="section">
+      <h2>03 — Your Offer</h2>
+      <div class="field"><label>Main Offers + Price</label><div class="field-value">${data.offers || ''}</div></div>
+      <div class="field"><label>Ideal Customer</label><div class="field-value">${data.ideal_customer || ''}</div></div>
+      <div class="field"><label>Biggest Differentiator</label><div class="field-value">${data.differentiator || ''}</div></div>
+    </div>
 
-    sections.forEach(section => {
-      doc.fontSize(14).text(section.title, { underline: true });
-      doc.fontSize(10);
-      section.fields.forEach(field => {
-        const value = data[field] || 'N/A';
-        doc.text(`${labels[field]}: ${value}`);
-      });
-      doc.moveDown();
-    });
+    <div class="section">
+      <h2>04 — Brand & Positioning</h2>
+      <div class="field"><label>Brand Words</label><div class="field-value">${data.brand_words || ''}</div></div>
+      <div class="field"><label>Inspiration</label><div class="field-value">${data.inspiration || ''}</div></div>
+      <div class="field"><label>Brand Colors</label><div class="field-value">${data.brand_colors_hex || data.brand_color_1 || ''}</div></div>
+      <div class="field"><label>Visual Style</label><div class="field-value">${data.visual_style || ''}</div></div>
+      <div class="field"><label>Brand Assets Link</label><div class="field-value">${data.brand_assets_link || ''}</div></div>
+    </div>
 
-    doc.end();
-  });
+    <div class="section">
+      <h2>05 — Content & Filming</h2>
+      <div class="field"><label>Script Topics</label><div class="field-value">${data.script_topics || ''}</div></div>
+      <div class="field"><label>Off-Limits</label><div class="field-value">${data.off_limits || ''}</div></div>
+      <div class="field"><label>Content Preferences</label><div class="field-value">${data.content_prefs || ''}</div></div>
+      <div class="field"><label>On-Camera Comfort Level</label><div class="field-value">${data.oncamera_level || ''}</div></div>
+      <div class="field"><label>Filming Availability</label><div class="field-value">${data.filming_availability || ''}</div></div>
+    </div>
+
+    <div class="section">
+      <h2>06 — Working Together</h2>
+      <div class="field"><label>Ad Budget</label><div class="field-value">${data.ad_budget || ''}</div></div>
+      <div class="field"><label>Great Working Relationship</label><div class="field-value">${data.relationship || ''}</div></div>
+      <div class="field"><label>Anything Else</label><div class="field-value">${data.anything_else || ''}</div></div>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    await page.setContent(html);
+    const pdf = await page.pdf({ format: 'A4', printBackground: true });
+    await browser.close();
+    return pdf;
+  } catch (error) {
+    if (browser) await browser.close();
+    throw error;
+  }
 }
 
 export default async function handler(req, res) {
@@ -55,10 +104,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { full_name, business_name, email, phone, website, service_area, social_links, content_purpose, goals_30_90, success_picture, offers, ideal_customer, differentiator, brand_words, inspiration, brand_color_1, brand_color_2, brand_color_3, brand_colors_hex, visual_style, brand_assets_link, script_topics, off_limits, content_prefs, oncamera_level, filming_availability, ad_budget, relationship, anything_else } = req.body;
+  const { full_name, business_name } = req.body;
 
   try {
-    const pdfBuffer = await generatePDF(req.body);
+    const pdfBuffer = await generatePDFFromHTML(req.body);
 
     await resend.emails.send({
       from: 'onboarding@resend.dev',

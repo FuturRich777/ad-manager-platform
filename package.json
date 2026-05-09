@@ -9,7 +9,7 @@
   ],
   "dependencies": {
     "resend": "^3.0.0",
-    "pdfkit": "^0.13.0"
+    "puppeteer": "^21.0.0"
   },
   "scripts": {
     "dev": "npm run dev --workspaces",
