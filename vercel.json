@@ -1,10 +1,6 @@
 {
-  "buildCommand": "cp minex-intake-form-email.html public/index.html",
+  "buildCommand": "mkdir -p public && cp minex-intake-form-email.html public/index.html && ls -la public/",
   "outputDirectory": "public",
   "installCommand": "npm install",
-  "public": true,
-  "routes": [
-    { "src": "^/logo\\.png$", "dest": "/logo.png" },
-    { "src": "^/.*", "dest": "/index.html" }
-  ]
+  "public": true
 }
