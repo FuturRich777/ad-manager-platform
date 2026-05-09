@@ -412,8 +412,7 @@
 
   <form id="intakeForm"
         name="onboarding-intake"
-        method="POST"
-        action="/api/submit-form">
+        method="POST">
 
     <!-- 01 — ABOUT YOU -->
     <section class="field-group">
@@ -676,7 +675,7 @@
       const formData = new FormData(form);
       const data = Object.fromEntries(formData);
 
-      const response = await fetch('/api/submit-form', {
+      const response = await fetch('https://hooks.zapier.com/hooks/catch/19750877/4y96g5c/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
