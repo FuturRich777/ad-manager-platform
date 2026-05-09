@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import fs from 'fs';
 import path from 'path';
+import PDFDocument from 'pdfkit';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -73,6 +74,117 @@ function prefillFormHTML(formHTML, data) {
   return html;
 }
 
+function generatePDF(data) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    const doc = new PDFDocument({ size: 'A4' });
+
+    doc.on('data', (chunk) => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    const fontSize = 11;
+    const labelSize = 10;
+    const margin = 50;
+    const pageWidth = 612;
+    const contentWidth = pageWidth - 2 * margin;
+
+    doc.fontSize(18).text('Client Intake Form', margin, margin, { align: 'left' });
+    doc.fontSize(9).text(`Submitted: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, margin, 85);
+    doc.moveTo(margin, 105).lineTo(pageWidth - margin, 105).stroke();
+
+    let yPos = 125;
+    const addSection = (title) => {
+      doc.fontSize(12).font('Helvetica-Bold').text(title, margin, yPos);
+      yPos += 20;
+      return yPos;
+    };
+
+    const addField = (label, value) => {
+      if (!value) return;
+      doc.fontSize(labelSize).font('Helvetica-Bold').text(label, margin, yPos);
+      yPos += 12;
+      doc.fontSize(fontSize).font('Helvetica').text(String(value), margin + 10, yPos, { width: contentWidth - 10 });
+      const textHeight = doc.heightOfString(String(value), { width: contentWidth - 10 });
+      yPos += textHeight + 8;
+    };
+
+    yPos = addSection('01 — About You');
+    addField('Full Name:', data.full_name);
+    addField('Business Name:', data.business_name);
+    addField('Email:', data.email);
+    addField('Phone:', data.phone);
+    addField('Website:', data.website);
+    addField('Service Area:', data.service_area);
+    addField('Social Links:', data.social_links);
+
+    if (yPos > 700) {
+      doc.addPage();
+      yPos = margin;
+    }
+
+    yPos = addSection('02 — Goals & Vision');
+    addField('Content/Ads Purpose:', data.content_purpose);
+    addField('Top 1-3 Goals (30-90 days):', data.goals_30_90);
+    addField('Success Picture:', data.success_picture);
+
+    if (yPos > 700) {
+      doc.addPage();
+      yPos = margin;
+    }
+
+    yPos = addSection('03 — Your Offer');
+    addField('Main Offers + Price:', data.offers);
+    addField('Ideal Customer:', data.ideal_customer);
+    addField('Biggest Differentiator:', data.differentiator);
+
+    if (yPos > 700) {
+      doc.addPage();
+      yPos = margin;
+    }
+
+    yPos = addSection('04 — Brand Identity');
+    addField('3 Words About Brand:', data.brand_words);
+    addField('Brand Inspiration:', data.inspiration);
+    addField('Brand Colors (Hex):', data.brand_colors_hex);
+    addField('Visual Style:', data.visual_style);
+    addField('Brand Assets Link:', data.brand_assets_link);
+
+    if (yPos > 700) {
+      doc.addPage();
+      yPos = margin;
+    }
+
+    yPos = addSection('05 — Content & Scripts');
+    addField('Script Topics/Themes:', data.script_topics);
+    addField('Off-Limits Topics:', data.off_limits);
+    addField('Content Preferences:', data.content_prefs);
+    addField('On-Camera Comfort Level:', data.oncamera_level);
+    addField('Filming Availability:', data.filming_availability);
+
+    if (yPos > 700) {
+      doc.addPage();
+      yPos = margin;
+    }
+
+    yPos = addSection('06 — Budget & Relationship');
+    addField('Ad Budget (Monthly):', data.ad_budget);
+    addField('Relationship:', data.relationship);
+    addField('Anything Else?:', data.anything_else);
+
+    if (yPos > 700) {
+      doc.addPage();
+      yPos = margin;
+    }
+
+    yPos = addSection('07 — Signatures');
+    addField('Client Signature:', data.signature);
+    addField('MINEX MEDIA Rep:', data.representative_signature);
+
+    doc.end();
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -91,11 +203,15 @@ export default async function handler(req, res) {
     }
 
     const filledFormHTML = prefillFormHTML(formHTML, req.body);
+    const pdfBuffer = await generatePDF(req.body);
 
     // Encode form data as base64 for the download link
     const dataStr = JSON.stringify(req.body);
     const encodedData = Buffer.from(dataStr).toString('base64');
     const downloadLink = `https://awesome-goldberg-cf206d.vercel.app/api/get-form?data=${encodedData}`;
+
+    const businessName = (req.body.business_name || 'form').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const pdfFilename = `${businessName}_intake_${new Date().toISOString().split('T')[0]}.pdf`;
 
     const emailHtml = `
 <!DOCTYPE html>
@@ -161,10 +277,10 @@ export default async function handler(req, res) {
     </div>
 
     <div class="download-box">
-      <strong>Download the complete filled form:</strong>
-      <br>
+      <strong>✓ Form PDF attached to this email</strong>
+      <p style="margin: 5px 0 0 0; font-size: 12px; color: #6E7480;">The filled form has been generated as a PDF and is attached below. You can also download the interactive HTML version using the link below.</p>
       <a href="${downloadLink}" class="download-link">Download Form HTML</a>
-      <p style="margin: 10px 0 0 0; font-size: 12px; color: #6E7480;">You can open this file in any browser or save it for your records.</p>
+      <p style="margin: 10px 0 0 0; font-size: 12px; color: #6E7480;">The HTML version can be opened in any browser or saved for your records.</p>
     </div>
 
     <div class="footer">
@@ -179,6 +295,12 @@ export default async function handler(req, res) {
       to: 'olivier@minexai.ca',
       subject: `New Client Intake: ${full_name || 'Unknown'} - ${business_name || 'Unknown'}`,
       html: emailHtml,
+      attachments: [
+        {
+          filename: pdfFilename,
+          content: pdfBuffer,
+        },
+      ],
     });
 
     return res.status(200).json({ success: true, message: 'Form submitted successfully' });
