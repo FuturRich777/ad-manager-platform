@@ -802,13 +802,20 @@
       }
 
       function setCurrentDates() {
-        const today = new Date().toLocaleDateString();
+        const today = new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
         document.getElementById('clientDate').textContent = today;
         document.getElementById('repDate').textContent = today;
       }
 
       document.getElementById('signatureInput').addEventListener('input', updateSignatureDisplay);
       setCurrentDates();
+
+      // Update dates at midnight every day
+      setInterval(setCurrentDates, 60000); // Check every minute in case past midnight
     </script>
 
     <div class="submit-row">
