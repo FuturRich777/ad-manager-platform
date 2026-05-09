@@ -1,6 +1,19 @@
 {
-  "buildCommand": "cp minex-intake-form-email.html public/index.html && echo 'Files in public:' && ls -la public/",
+  "buildCommand": "cp minex-intake-form-email.html public/index.html && ls -la public/",
   "outputDirectory": "public",
   "installCommand": "npm install",
-  "public": true
+  "public": true,
+  "regions": ["sfo1"],
+  "functions": {},
+  "headers": [
+    {
+      "source": "/logo.png",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    }
+  ]
 }
