@@ -2,10 +2,5 @@
   "buildCommand": "cp minex-intake-form-email.html public/index.html",
   "outputDirectory": "public",
   "installCommand": "npm install",
-  "public": true,
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs20.x"
-    }
-  }
+  "public": true
 }
