@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Client Intake — Minex Media</title>
+<meta name="description" content="A short intake so we come to our first call already knowing your business, your brand, and what good looks like." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --paper:#F2EEE5;
+    --paper-2:#EAE5D9;
+    --ink:#13161A;
+    --ink-2:#3A3F46;
+    --ink-3:#6E7480;
+    --rule:#1316191A;
+    --rule-2:#13161933;
+    --accent:#1F4D3F;
+    --accent-ink:#F2EEE5;
+    --warn:#B5462A;
+    --field-bg:#FBF8F1;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Inter", system-ui, -apple-system, Segoe UI, sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    pointer-events:none;
+    background-image:
+      radial-gradient(rgba(19,22,25,.025) 1px, transparent 1px),
+      radial-gradient(rgba(19,22,25,.02) 1px, transparent 1px);
+    background-size:3px 3px, 7px 7px;
+    background-position:0 0, 1px 1px;
+    z-index:0;
+  }
+
+  .wrap{
+    position:relative;
+    z-index:1;
+    max-width:880px;
+    margin:0 auto;
+    padding:48px 28px 96px;
+  }
+
+  header.top{
+    display:flex; justify-content:space-between; align-items:center;
+    border-bottom:1px solid var(--rule-2);
+    padding-bottom:18px;
+    margin-bottom:56px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:"JetBrains Mono", monospace;
+    font-size:12px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--ink);
+  }
+  .brand-mark{
+    width:22px; height:22px;
+    background:var(--ink);
+    color:var(--paper);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-family:"Fraunces", serif;
+    font-weight:500;
+    font-size:14px;
+    line-height:1;
+  }
+  .meta{
+    font-family:"JetBrains Mono", monospace;
+    font-size:11px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--ink-3);
+  }
+
+  .hero{ margin-bottom:72px; }
+  .eyebrow{
+    font-family:"JetBrains Mono", monospace;
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:24px;
+  }
+  .eyebrow::before{
+    content:"";
+    display:inline-block;
+    width:24px; height:1px;
+    background:var(--accent);
+    vertical-align:middle;
+    margin-right:10px;
+    transform:translateY(-2px);
+  }
+  h1{
+    font-family:"Fraunces", serif;
+    font-weight:400;
+    font-size:clamp(40px, 6vw, 64px);
+    line-height:1.02;
+    letter-spacing:-0.02em;
+    margin:0 0 24px;
+  }
+  h1 em{
+    font-style:italic;
+    font-weight:300;
+    color:var(--accent);
+  }
+  .lede{
+    font-size:17px;
+    line-height:1.6;
+    color:var(--ink-2);
+    max-width:62ch;
+    margin:0 0 14px;
+  }
+  .lede strong{ color:var(--ink); font-weight:500; }
+
+  .timing{
+    display:inline-flex; align-items:center; gap:10px;
+    margin-top:18px;
+    padding:8px 14px;
+    background:var(--paper-2);
+    border:1px solid var(--rule-2);
+    border-radius:999px;
+    font-family:"JetBrains Mono", monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-2);
+  }
+  .timing .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent); }
+
+  section.field-group{
+    border-top:1px solid var(--rule-2);
+    padding:48px 0 8px;
+    display:grid;
+    grid-template-columns:140px 1fr;
+    gap:40px;
+  }
+  @media (max-width:720px){
+    section.field-group{ grid-template-columns:1fr; gap:18px; }
+  }
+  .sect-head .num{
+    font-family:"JetBrains Mono", monospace;
+    font-size:11px;
+    letter-spacing:.18em;
+    color:var(--ink-3);
+    margin-bottom:8px;
+  }
+  .sect-head h2{
+    font-family:"Fraunces", serif;
+    font-weight:400;
+    font-size:22px;
+    line-height:1.15;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .sect-head .sub{
+    margin-top:10px;
+    font-size:13px;
+    color:var(--ink-3);
+    line-height:1.5;
+  }
+
+  .fields{ display:grid; gap:22px; }
+  .row{ display:grid; gap:22px; grid-template-columns:1fr 1fr; }
+  @media (max-width:560px){ .row{ grid-template-columns:1fr; } }
+
+  label.f{ display:block; }
+  label.f .lab{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-family:"JetBrains Mono", monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-2);
+    margin-bottom:8px;
+  }
+  label.f .lab .req{ color:var(--warn); margin-left:4px; }
+  label.f .hint{
+    font-family:"Inter", sans-serif;
+    font-size:11px;
+    letter-spacing:.04em;
+    text-transform:none;
+    color:var(--ink-3);
+    font-weight:400;
+  }
+
+  input[type="text"], input[type="email"], input[type="tel"],
+  input[type="url"], input[type="number"], select, textarea{
+    width:100%;
+    background:var(--field-bg);
+    border:1px solid var(--rule-2);
+    border-radius:6px;
+    padding:13px 14px;
+    font-family:"Inter", sans-serif;
+    font-size:15px;
+    color:var(--ink);
+    line-height:1.4;
+    transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  textarea{ min-height:110px; resize:vertical; line-height:1.55; }
+  input:focus, select:focus, textarea:focus{
+    outline:none;
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(31,77,63,.12);
+    background:#fff;
+  }
+  ::placeholder{ color:#A8ADB5; }
+
+  select{
+    appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%2313161A' stroke-width='1.2' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 14px center;
+    padding-right:36px;
+  }
+
+  .swatch-row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .swatch{
+    position:relative;
+    width:42px; height:42px;
+    border-radius:8px;
+    border:1px solid var(--rule-2);
+    overflow:hidden;
+    background:var(--field-bg);
+  }
+  .swatch input[type="color"]{
+    position:absolute; inset:-2px;
+    width:calc(100% + 4px); height:calc(100% + 4px);
+    border:none; padding:0; background:transparent;
+    cursor:pointer;
+  }
+  .swatch-row .add-swatch{
+    font-family:"JetBrains Mono", monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-3);
+  }
+
+  .checks{ display:flex; flex-wrap:wrap; gap:8px; }
+  .checks label{ position:relative; cursor:pointer; }
+  .checks input{ position:absolute; opacity:0; pointer-events:none; }
+  .checks .pill{
+    display:inline-block;
+    padding:9px 14px;
+    border:1px solid var(--rule-2);
+    border-radius:999px;
+    background:var(--field-bg);
+    font-size:13px;
+    color:var(--ink-2);
+    transition:all .15s ease;
+    user-select:none;
+  }
+  .checks input:checked + .pill{
+    background:var(--ink);
+    color:var(--paper);
+    border-color:var(--ink);
+  }
+  .checks label:hover .pill{ border-color:var(--ink); }
+  .checks input:focus-visible + .pill{ box-shadow:0 0 0 3px rgba(31,77,63,.18); }
+
+  .scale{ display:grid; grid-template-columns:repeat(5, 1fr); gap:8px; }
+  .scale label{ position:relative; cursor:pointer; text-align:center; }
+  .scale input{ position:absolute; opacity:0; pointer-events:none; }
+  .scale .opt{
+    display:block;
+    padding:14px 6px 10px;
+    background:var(--field-bg);
+    border:1px solid var(--rule-2);
+    border-radius:6px;
+    font-family:"JetBrains Mono", monospace;
+    font-size:11px;
+    letter-spacing:.1em;
+    color:var(--ink-2);
+    transition:all .15s ease;
+  }
+  .scale .opt .num{
+    display:block;
+    font-family:"Fraunces", serif;
+    font-size:20px;
+    color:var(--ink);
+    margin-bottom:4px;
+    font-feature-settings:"tnum";
+  }
+  .scale input:checked + .opt{
+    background:var(--ink);
+    color:var(--paper-2);
+    border-color:var(--ink);
+  }
+  .scale input:checked + .opt .num{ color:var(--paper); }
+  .scale label:hover .opt{ border-color:var(--ink); }
+  @media (max-width:560px){
+    .scale{ gap:4px; }
+    .scale .opt{ padding:10px 2px 8px; }
+    .scale .opt .num{ font-size:16px; }
+  }
+
+  .submit-row{
+    margin-top:64px;
+    padding-top:32px;
+    border-top:1px solid var(--rule-2);
+    display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;
+  }
+  .legal{
+    font-size:12px;
+    color:var(--ink-3);
+    max-width:46ch;
+    line-height:1.5;
+  }
+  button.submit{
+    appearance:none;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    padding:18px 36px 18px 30px;
+    border-radius:999px;
+    font-family:"Inter", sans-serif;
+    font-size:14px;
+    font-weight:500;
+    letter-spacing:.04em;
+    cursor:pointer;
+    display:inline-flex; align-items:center; gap:14px;
+    transition:transform .15s ease, background .15s ease;
+  }
+  button.submit:hover{ background:var(--accent); transform:translateY(-1px); }
+  button.submit:active{ transform:translateY(0); }
+  button.submit .arrow{ display:inline-block; transition:transform .2s ease; }
+  button.submit:hover .arrow{ transform:translateX(4px); }
+
+  footer.bottom{
+    margin-top:72px;
+    padding-top:24px;
+    border-top:1px solid var(--rule-2);
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:"JetBrains Mono", monospace;
+    font-size:10px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--ink-3);
+  }
+  footer.bottom a{ color:inherit; text-decoration:none; }
+
+  .success{
+    display:none;
+    padding:48px 32px;
+    border:1px solid var(--accent);
+    background:#fff;
+    border-radius:8px;
+    text-align:center;
+  }
+  .success.active{ display:block; }
+  .success h2{
+    font-family:"Fraunces", serif;
+    font-weight:400;
+    font-size:32px;
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .success p{ color:var(--ink-2); max-width:42ch; margin:0 auto; }
+  .success .check{
+    width:48px; height:48px;
+    border-radius:50%;
+    background:var(--accent);
+    color:var(--paper);
+    display:inline-flex; align-items:center; justify-content:center;
+    margin-bottom:18px;
+    font-size:22px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <span class="brand-mark">M</span>
+      Minex Media
+    </div>
+    <div class="meta">Client Intake · v5</div>
+  </header>
+
+  <div class="hero">
+    <div class="eyebrow">Velocity Engineers · Content + Ads</div>
+    <h1>Tell us about you. <em>We'll build the engine.</em></h1>
+    <p class="lede">
+      A short intake so our first call isn't a fact-finding mission — it's a strategy session.
+      The more we know about your business, your brand, and what "good" looks like to you,
+      the harder our first deliverables hit. <strong>Most teams finish in 12 minutes.</strong>
+    </p>
+    <p class="lede" style="margin-top:0">
+      Anything you don't have handy, leave blank — we'll fill the gaps live.
+    </p>
+    <div class="timing"><span class="dot"></span>~ 12 minutes · 6 sections</div>
+  </div>
+
+  <form id="intakeForm"
+        name="onboarding-intake"
+        method="POST"
+        action="/api/submit-form">
+
+    <!-- 01 — ABOUT YOU -->
+    <section class="field-group">
+      <div class="sect-head">
+        <div class="num">01</div>
+        <h2>About You</h2>
+        <div class="sub">Who you are and how to reach you.</div>
+      </div>
+      <div class="fields">
+        <div class="row">
+          <label class="f">
+            <span class="lab">Your full name <span class="req">*</span></span>
+            <input type="text" name="full_name" required placeholder="First and last">
+          </label>
+          <label class="f">
+            <span class="lab">Business name <span class="req">*</span></span>
+            <input type="text" name="business_name" required placeholder="Your company">
+          </label>
+        </div>
+        <div class="row">
+          <label class="f">
+            <span class="lab">Email <span class="req">*</span></span>
+            <input type="email" name="email" required placeholder="you@company.com">
+          </label>
+          <label class="f">
+            <span class="lab">Phone</span>
+            <input type="tel" name="phone" placeholder="+1 (___) ___-____">
+          </label>
+        </div>
+        <div class="row">
+          <label class="f">
+            <span class="lab">Website</span>
+            <input type="url" name="website" placeholder="https://">
+          </label>
+          <label class="f">
+            <span class="lab">Service area <span class="req">*</span></span>
+            <input type="text" name="service_area" required placeholder="e.g. Greater Vancouver, North America, Global">
+          </label>
+        </div>
+        <label class="f">
+          <span class="lab">Social links <span class="hint">Instagram, TikTok, LinkedIn, YouTube, etc.</span></span>
+          <textarea name="social_links" placeholder="Drop the URLs to every account you want us to look at."></textarea>
+        </label>
+      </div>
+    </section>
+
+    <!-- 02 — GOALS -->
+    <section class="field-group">
+      <div class="sect-head">
+        <div class="num">02</div>
+        <h2>Goals &amp; Vision</h2>
+        <div class="sub">What we're aiming at — and what hitting the bullseye looks like.</div>
+      </div>
+      <div class="fields">
+        <label class="f">
+          <span class="lab">What do you want the content / ads to do? <span class="hint">awareness, leads, sales, hires, community…</span></span>
+          <textarea name="content_purpose" placeholder="e.g. Generate qualified inbound leads for our top 2 services + build authority in the niche."></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">Top 1–3 goals for the next 30–90 days <span class="req">*</span></span>
+          <textarea name="goals_30_90" required placeholder="Be specific — numbers, deadlines, outcomes."></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">If we crushed this project, what would success look like? <span class="req">*</span></span>
+          <textarea name="success_picture" required placeholder="Paint the picture. Revenue? Inbox full of leads? Booked-out calendar? Brand recognition?"></textarea>
+        </label>
+      </div>
+    </section>
+
+    <!-- 03 — YOUR OFFER -->
+    <section class="field-group">
+      <div class="sect-head">
+        <div class="num">03</div>
+        <h2>Your Offer</h2>
+        <div class="sub">What you sell, who you sell it to, and why you win.</div>
+      </div>
+      <div class="fields">
+        <label class="f">
+          <span class="lab">Your main offer(s) + starting price <span class="req">*</span></span>
+          <textarea name="offers" required placeholder="e.g. 1:1 coaching from $5K · group program from $1,200 · done-for-you service from $8K/mo"></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">Ideal customer — who do you want to attract? <span class="req">*</span></span>
+          <textarea name="ideal_customer" required placeholder="Demographics, role, industry, pain points, what they've tried before…"></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">Your biggest differentiator vs competitors <span class="req">*</span></span>
+          <textarea name="differentiator" required placeholder="The one thing only you can say. The unfair advantage. The reason clients pick you."></textarea>
+        </label>
+      </div>
+    </section>
+
+    <!-- 04 — BRAND & POSITIONING -->
+    <section class="field-group">
+      <div class="sect-head">
+        <div class="num">04</div>
+        <h2>Brand &amp; Positioning</h2>
+        <div class="sub">The look, feel, and personality we'll build around.</div>
+      </div>
+      <div class="fields">
+        <label class="f">
+          <span class="lab">Describe your brand in 3–5 words</span>
+          <input type="text" name="brand_words" placeholder="e.g. Confident, technical, warm, no-nonsense, premium">
+        </label>
+
+        <label class="f">
+          <span class="lab">Brands / pages you love (links) — and why</span>
+          <textarea name="inspiration" placeholder="Drop links to accounts, brands, or campaigns you admire and what hits for you about them."></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">Primary brand color(s) <span class="hint">click to pick — or paste hex codes below</span></span>
+          <div class="swatch-row" id="swatchRow">
+            <span class="swatch"><input type="color" name="brand_color_1" value="#1F4D3F"></span>
+            <span class="swatch"><input type="color" name="brand_color_2" value="#13161A"></span>
+            <span class="swatch"><input type="color" name="brand_color_3" value="#F2EEE5"></span>
+          </div>
+          <input type="text" name="brand_colors_hex" style="margin-top:10px" placeholder="Or paste hex codes: #FF5733, #1A1A1A, etc.">
+        </label>
+
+        <label class="f">
+          <span class="lab">Visual style preference</span>
+          <div class="checks">
+            <label><input type="checkbox" name="visual_style" value="Clean / minimal"><span class="pill">Clean / minimal</span></label>
+            <label><input type="checkbox" name="visual_style" value="Bold / high-energy"><span class="pill">Bold / high-energy</span></label>
+            <label><input type="checkbox" name="visual_style" value="Editorial / refined"><span class="pill">Editorial / refined</span></label>
+            <label><input type="checkbox" name="visual_style" value="Documentary / raw"><span class="pill">Documentary / raw</span></label>
+            <label><input type="checkbox" name="visual_style" value="Cinematic"><span class="pill">Cinematic</span></label>
+            <label><input type="checkbox" name="visual_style" value="Punchy / meme-y"><span class="pill">Punchy / meme-y</span></label>
+            <label><input type="checkbox" name="visual_style" value="Luxury"><span class="pill">Luxury</span></label>
+            <label><input type="checkbox" name="visual_style" value="Not sure — guide us"><span class="pill">Not sure — guide us</span></label>
+          </div>
+        </label>
+
+        <label class="f">
+          <span class="lab">Logo &amp; brand assets <span class="hint">paste a Drive / Dropbox / Notion link to the folder</span></span>
+          <input type="url" name="brand_assets_link" placeholder="https://drive.google.com/…">
+          <span style="display:block; margin-top:6px; font-size:12px; color:var(--ink-3); line-height:1.5;">
+            Logo files, fonts, brand book, photo library — anything you've got. If you don't have a folder yet, just drop your logo files into a fresh Drive folder and share that link.
+          </span>
+        </label>
+      </div>
+    </section>
+
+    <!-- 05 — CONTENT & FILMING -->
+    <section class="field-group">
+      <div class="sect-head">
+        <div class="num">05</div>
+        <h2>Content &amp; Filming</h2>
+        <div class="sub">What to make, how to make it, and what to steer clear of.</div>
+      </div>
+      <div class="fields">
+        <label class="f">
+          <span class="lab">Topics you want us to make scripts about</span>
+          <textarea name="script_topics" placeholder="e.g. behind-the-scenes of the service, client wins, common myths, pricing transparency, hot takes…"></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">Anything that's "off-limits" to film or say?</span>
+          <textarea name="off_limits" placeholder="Topics, phrases, competitors, claims, faces, locations — anywhere we shouldn't go."></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">Content style + preferences</span>
+          <textarea name="content_prefs" placeholder="Long-form vs short-form, talking head vs b-roll heavy, captions style, music vibe, etc."></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">On-camera comfort level <span class="hint">1 = please don't film me  ·  5 = ready to host the show</span></span>
+          <div class="scale">
+            <label><input type="radio" name="oncamera_level" value="1"><span class="opt"><span class="num">1</span>Hide me</span></label>
+            <label><input type="radio" name="oncamera_level" value="2"><span class="opt"><span class="num">2</span>Reluctant</span></label>
+            <label><input type="radio" name="oncamera_level" value="3"><span class="opt"><span class="num">3</span>Open</span></label>
+            <label><input type="radio" name="oncamera_level" value="4"><span class="opt"><span class="num">4</span>Comfortable</span></label>
+            <label><input type="radio" name="oncamera_level" value="5"><span class="opt"><span class="num">5</span>Natural</span></label>
+          </div>
+        </label>
+
+        <label class="f">
+          <span class="lab">Best filming days / times</span>
+          <textarea name="filming_availability" placeholder="e.g. Tuesdays + Thursdays, mornings before 11am. Or: weekends only."></textarea>
+        </label>
+      </div>
+    </section>
+
+    <!-- 06 — WORKING TOGETHER -->
+    <section class="field-group">
+      <div class="sect-head">
+        <div class="num">06</div>
+        <h2>Working Together</h2>
+        <div class="sub">Budget, working style, and anything else we should know.</div>
+      </div>
+      <div class="fields">
+        <label class="f">
+          <span class="lab">Monthly ad budget range</span>
+          <select name="ad_budget">
+            <option value="">Select…</option>
+            <option>Under $1K / mo</option>
+            <option>$1K – $5K / mo</option>
+            <option>$5K – $10K / mo</option>
+            <option>$10K – $25K / mo</option>
+            <option>$25K – $50K / mo</option>
+            <option>$50K+ / mo</option>
+            <option>Not sure yet</option>
+          </select>
+        </label>
+
+        <label class="f">
+          <span class="lab">What does a great working relationship look like to you?</span>
+          <textarea name="relationship" placeholder="Cadence of updates, where we communicate (Slack/email/calls), how decisions get made, what makes you feel taken care of."></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">Anything else we should know?</span>
+          <textarea name="anything_else" placeholder="Constraints, sacred cows, agencies you've fired and why, internal politics, dream outcomes…"></textarea>
+        </label>
+      </div>
+    </section>
+
+    <div class="submit-row">
+      <p class="legal">
+        We treat this as confidential. Your responses are emailed straight to the Minex Media team and used only to prep our work together.
+      </p>
+      <button type="submit" class="submit">
+        Submit intake
+        <span class="arrow">→</span>
+      </button>
+    </div>
+
+  </form>
+
+  <div class="success" id="successMsg">
+    <div class="check">✓</div>
+    <h2>Got it. Talk soon.</h2>
+    <p>Your intake just landed in our inbox. We'll review it and come back within one business day with next steps.</p>
+  </div>
+
+  <footer class="bottom">
+    <span>© Minex Media · Velocity Engineers</span>
+    <a href="mailto:hello@minexmedia.com">hello@minexmedia.com</a>
+  </footer>
+
+</div>
+
+<script>
+  const form = document.getElementById('intakeForm');
+  const success = document.getElementById('successMsg');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector('button.submit');
+    btn.disabled = true;
+    btn.innerHTML = 'Sending… <span class="arrow">→</span>';
+
+    try {
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData);
+
+      const response = await fetch('/api/submit-form', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        form.style.display = 'none';
+        success.classList.add('active');
+        window.scrollTo({ top: success.offsetTop - 80, behavior:'smooth' });
+      } else {
+        btn.disabled = false;
+        btn.innerHTML = 'Send <span class="arrow">→</span>';
+        alert('Error submitting form. Please try again.');
+      }
+    } catch (error) {
+      btn.disabled = false;
+      btn.innerHTML = 'Send <span class="arrow">→</span>';
+      alert('Error submitting form. Please try again.');
+    }
+  });
+</script>
+
+</body>
+</html>

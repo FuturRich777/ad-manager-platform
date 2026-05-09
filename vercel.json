@@ -1,12 +1,11 @@
 {
-  "buildCommand": "cp public/index.html public/index.html",
+  "buildCommand": "cp minex-intake-form-email.html public/index.html",
   "outputDirectory": "public",
-  "installCommand": "echo 'No install needed'",
+  "installCommand": "npm install",
   "public": true,
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs20.x"
     }
-  ]
+  }
 }
