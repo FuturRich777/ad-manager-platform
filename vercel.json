@@ -4,6 +4,6 @@
   "installCommand": "npm install",
   "public": true,
   "env": {
-    "REDEPLOY_TIMESTAMP": "2026-05-09T00:00:00Z"
+    "REDEPLOY_TIMESTAMP": "2026-05-09T12:00:00Z"
   }
 }
