@@ -1,1204 +1,927 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AdFlow - Client Success Manager</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #8b5cf6;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --bg-dark: #0f172a;
-            --bg-secondary: #1e293b;
-            --bg-tertiary: #334155;
-            --text-primary: #f1f5f9;
-            --text-secondary: #cbd5e1;
-            --border: #475569;
-            --gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            line-height: 1.6;
-        }
-
-        .container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 280px;
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border);
-            padding: 2rem 0;
-            overflow-y: auto;
-            position: fixed;
-            height: 100vh;
-            z-index: 100;
-        }
-
-        .logo {
-            padding: 0 2rem;
-            margin-bottom: 3rem;
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .nav-section {
-            margin-bottom: 2rem;
-        }
-
-        .nav-label {
-            padding: 0 2rem;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-        }
-
-        .nav-item {
-            padding: 0.75rem 2rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            border-left: 3px solid transparent;
-            background: none;
-            border: none;
-            width: 100%;
-            text-align: left;
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-        }
-
-        .nav-item:hover {
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--text-primary);
-        }
-
-        .nav-item.active {
-            background: rgba(99, 102, 241, 0.2);
-            border-left-color: var(--primary);
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        /* Main Content */
-        .main {
-            flex: 1;
-            margin-left: 280px;
-            background: var(--bg-dark);
-        }
-
-        .header {
-            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-dark) 100%);
-            border-bottom: 1px solid var(--border);
-            padding: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header-title {
-            font-size: 1.875rem;
-            font-weight: 700;
-        }
-
-        .header-stats {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .stat-item {
-            text-align: right;
-        }
-
-        .stat-label {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .content {
-            padding: 2rem;
-            display: none;
-        }
-
-        .content.active {
-            display: block;
-        }
-
-        /* Cards and Grid */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .grid-4 {
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        }
-
-        .card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .card:hover {
-            border-color: var(--primary);
-            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.1);
-            transform: translateY(-4px);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1rem;
-        }
-
-        .card-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .card-icon {
-            font-size: 1.5rem;
-            opacity: 0.5;
-        }
-
-        .metric {
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .metric:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: none;
-        }
-
-        .metric-label {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
-
-        .metric-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .metric-change {
-            font-size: 0.875rem;
-            margin-top: 0.5rem;
-            color: var(--success);
-        }
-
-        /* Stat Card */
-        .stat-card {
-            background: var(--gradient);
-            color: white;
-            border: none;
-        }
-
-        .stat-card .card-title {
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        /* Table */
-        .table-container {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 2rem;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            background: var(--bg-tertiary);
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            letter-spacing: 0.05em;
-        }
-
-        td {
-            padding: 1rem;
-            border-top: 1px solid var(--border);
-        }
-
-        tr:hover {
-            background: rgba(99, 102, 241, 0.05);
-        }
-
-        /* Badges */
-        .badge {
-            display: inline-block;
-            padding: 0.375rem 0.75rem;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-
-        .badge-success {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--success);
-        }
-
-        .badge-warning {
-            background: rgba(245, 158, 11, 0.2);
-            color: var(--warning);
-        }
-
-        .badge-primary {
-            background: rgba(99, 102, 241, 0.2);
-            color: var(--primary);
-        }
-
-        /* Buttons */
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.95rem;
-        }
-
-        button:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-        }
-
-        button.secondary {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-        }
-
-        button.secondary:hover {
-            background: var(--border);
-        }
-
-        /* Forms */
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        input, select, textarea {
-            width: 100%;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 0.75rem;
-            border-radius: 8px;
-            font-family: inherit;
-            transition: all 0.3s;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: var(--bg-secondary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.show {
-            display: flex;
-        }
-
-        .modal-content {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 2rem;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .modal-close {
-            float: right;
-            background: none;
-            color: var(--text-secondary);
-            font-size: 1.5rem;
-            cursor: pointer;
-            border: none;
-            padding: 0;
-        }
-
-        .modal-close:hover {
-            color: var(--text-primary);
-        }
-
-        /* Charts */
-        .chart-container {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .chart-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-        }
-
-        .chart-bar {
-            display: flex;
-            align-items: flex-end;
-            gap: 1rem;
-            height: 250px;
-        }
-
-        .bar {
-            flex: 1;
-            background: var(--gradient);
-            border-radius: 8px 8px 0 0;
-            position: relative;
-            min-height: 20px;
-            transition: all 0.3s;
-        }
-
-        .bar:hover {
-            opacity: 0.8;
-        }
-
-        .bar-label {
-            position: absolute;
-            bottom: -25px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        /* Alert */
-        .alert {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-left: 4px solid var(--success);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            color: var(--text-primary);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar { width: 100%; height: auto; position: static; }
-            .main { margin-left: 0; }
-            .grid { grid-template-columns: 1fr; }
-            .header-stats { flex-direction: column; gap: 1rem; text-align: left; }
-        }
-
-        .client-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .client-card:hover {
-            border-color: var(--primary);
-            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.1);
-        }
-
-        .client-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 1rem;
-        }
-
-        .client-name {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .client-industry {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-top: 0.25rem;
-        }
-
-        .video-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .video-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .video-card:hover {
-            border-color: var(--primary);
-            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.1);
-        }
-
-        .video-thumbnail {
-            width: 100%;
-            height: 120px;
-            background: var(--bg-tertiary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-        }
-
-        .video-info {
-            padding: 1rem;
-        }
-
-        .video-title {
-            font-size: 0.95rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .video-status {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MINEX MEDIA Onboarding</title>
+<meta name="description" content="MINEX MEDIA Client Onboarding — Tell us about your business, goals, and vision so we can create the perfect content strategy for you." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --paper:#F2EEE5;
+    --paper-2:#EAE5D9;
+    --ink:#13161A;
+    --ink-2:#3A3F46;
+    --ink-3:#6E7480;
+    --rule:#1316191A;
+    --rule-2:#13161933;
+    --accent:#1F4D3F;
+    --accent-ink:#F2EEE5;
+    --warn:#B5462A;
+    --field-bg:#FBF8F1;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Inter", system-ui, -apple-system, Segoe UI, sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    pointer-events:none;
+    background-image:
+      radial-gradient(rgba(19,22,25,.025) 1px, transparent 1px),
+      radial-gradient(rgba(19,22,25,.02) 1px, transparent 1px);
+    background-size:3px 3px, 7px 7px;
+    background-position:0 0, 1px 1px;
+    z-index:0;
+  }
+
+  .wrap{
+    position:relative;
+    z-index:1;
+    max-width:880px;
+    margin:0 auto;
+    padding:48px 28px 96px;
+  }
+
+  header.top{
+    display:flex; justify-content:space-between; align-items:center;
+    border-bottom:1px solid var(--rule-2);
+    padding-bottom:18px;
+    margin-bottom:56px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:"JetBrains Mono", monospace;
+    font-size:12px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--ink);
+  }
+  .brand-mark{
+    width:22px; height:22px;
+    background:var(--ink);
+    color:var(--paper);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-family:"Fraunces", serif;
+    font-weight:500;
+    font-size:14px;
+    line-height:1;
+  }
+  .meta{
+    font-family:"JetBrains Mono", monospace;
+    font-size:11px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--ink-3);
+  }
+
+  .hero{ margin-bottom:72px; }
+  .eyebrow{
+    font-family:"JetBrains Mono", monospace;
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:24px;
+  }
+  .eyebrow::before{
+    content:"";
+    display:inline-block;
+    width:24px; height:1px;
+    background:var(--accent);
+    vertical-align:middle;
+    margin-right:10px;
+    transform:translateY(-2px);
+  }
+  h1{
+    font-family:"Fraunces", serif;
+    font-weight:400;
+    font-size:clamp(40px, 6vw, 64px);
+    line-height:1.02;
+    letter-spacing:-0.02em;
+    margin:0 0 24px;
+  }
+  h1 em{
+    font-style:italic;
+    font-weight:300;
+    color:var(--accent);
+  }
+  .lede{
+    font-size:17px;
+    line-height:1.6;
+    color:var(--ink-2);
+    max-width:62ch;
+    margin:0 0 14px;
+  }
+  .lede strong{ color:var(--ink); font-weight:500; }
+
+  .timing{
+    display:inline-flex; align-items:center; gap:10px;
+    margin-top:18px;
+    padding:8px 14px;
+    background:var(--paper-2);
+    border:1px solid var(--rule-2);
+    border-radius:999px;
+    font-family:"JetBrains Mono", monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-2);
+  }
+  .timing .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent); }
+
+  section.field-group{
+    border-top:1px solid var(--rule-2);
+    padding:48px 0 8px;
+    display:grid;
+    grid-template-columns:140px 1fr;
+    gap:40px;
+    position:relative;
+  }
+  section.field-group::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    width:4px;
+    height:40px;
+    background:linear-gradient(180deg, var(--accent), transparent);
+    border-radius:2px;
+  }
+  @media (max-width:720px){
+    section.field-group{ grid-template-columns:1fr; gap:18px; }
+  }
+  .sect-head .num{
+    font-family:"JetBrains Mono", monospace;
+    font-size:11px;
+    letter-spacing:.18em;
+    color:var(--ink-3);
+    margin-bottom:8px;
+  }
+  .sect-head h2{
+    font-family:"Fraunces", serif;
+    font-weight:400;
+    font-size:22px;
+    line-height:1.15;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .sect-head .sub{
+    margin-top:10px;
+    font-size:13px;
+    color:var(--ink-3);
+    line-height:1.5;
+  }
+
+  .fields{ display:grid; gap:22px; }
+  .row{ display:grid; gap:22px; grid-template-columns:1fr 1fr; }
+  @media (max-width:560px){ .row{ grid-template-columns:1fr; } }
+
+  label.f{ display:block; }
+  label.f .lab{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-family:"JetBrains Mono", monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-2);
+    margin-bottom:8px;
+  }
+  label.f .lab .req{ color:var(--warn); margin-left:4px; }
+  label.f .hint{
+    font-family:"Inter", sans-serif;
+    font-size:11px;
+    letter-spacing:.04em;
+    text-transform:none;
+    color:var(--ink-3);
+    font-weight:400;
+  }
+
+  input[type="text"], input[type="email"], input[type="tel"],
+  input[type="url"], input[type="number"], select, textarea{
+    width:100%;
+    background:var(--field-bg);
+    border:1px solid var(--rule-2);
+    border-radius:6px;
+    padding:13px 14px;
+    font-family:"Inter", sans-serif;
+    font-size:15px;
+    color:var(--ink);
+    line-height:1.4;
+    transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  textarea{ min-height:110px; resize:vertical; line-height:1.55; }
+  input:focus, select:focus, textarea:focus{
+    outline:none;
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(31,77,63,.12);
+    background:#fff;
+  }
+  ::placeholder{ color:#A8ADB5; }
+
+  select{
+    appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%2313161A' stroke-width='1.2' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 14px center;
+    padding-right:36px;
+  }
+
+  .swatch-row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .swatch{
+    position:relative;
+    width:42px; height:42px;
+    border-radius:8px;
+    border:1px solid var(--rule-2);
+    overflow:hidden;
+    background:var(--field-bg);
+  }
+  .swatch input[type="color"]{
+    position:absolute; inset:-2px;
+    width:calc(100% + 4px); height:calc(100% + 4px);
+    border:none; padding:0; background:transparent;
+    cursor:pointer;
+  }
+  .swatch-row .add-swatch{
+    font-family:"JetBrains Mono", monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-3);
+  }
+
+  .checks{ display:flex; flex-wrap:wrap; gap:8px; }
+  .checks label{ position:relative; cursor:pointer; }
+  .checks input{ position:absolute; opacity:0; pointer-events:none; }
+  .checks .pill{
+    display:inline-block;
+    padding:9px 14px;
+    border:1px solid var(--rule-2);
+    border-radius:999px;
+    background:var(--field-bg);
+    font-size:13px;
+    color:var(--ink-2);
+    transition:all .15s ease;
+    user-select:none;
+  }
+  .checks input:checked + .pill{
+    background:var(--ink);
+    color:var(--paper);
+    border-color:var(--ink);
+  }
+  .checks label:hover .pill{ border-color:var(--ink); }
+  .checks input:focus-visible + .pill{ box-shadow:0 0 0 3px rgba(31,77,63,.18); }
+
+  .guarantee-header{
+    display:flex; align-items:center; gap:12px; cursor:pointer; padding:16px 0;
+    font-weight:600; font-size:16px; color:var(--ink);
+    user-select:none;
+  }
+  .guarantee-header:hover{ color:var(--accent); }
+  .guarantee-toggle{
+    display:inline-block; width:20px; height:20px;
+    background:var(--accent); color:var(--paper);
+    border-radius:4px; text-align:center; line-height:20px;
+    font-size:14px; font-weight:bold;
+    transition:transform .2s ease;
+  }
+  .guarantee-toggle.open{ transform:rotate(90deg); }
+  .guarantee-content{
+    max-height:0; overflow:hidden; transition:max-height .3s ease;
+  }
+  .guarantee-content.open{
+    max-height:2000px;
+  }
+  .guarantee-text{
+    font-size:13px; line-height:1.8; color:var(--ink-2);
+    margin:20px 0;
+    padding:20px;
+    background:var(--field-bg);
+    border-radius:6px;
+    border-left:3px solid var(--accent);
+  }
+
+  .scale{ display:grid; grid-template-columns:repeat(5, 1fr); gap:8px; }
+  .scale label{ position:relative; cursor:pointer; text-align:center; }
+  .scale input{ position:absolute; opacity:0; pointer-events:none; }
+  .scale .opt{
+    display:block;
+    padding:14px 6px 10px;
+    background:var(--field-bg);
+    border:1px solid var(--rule-2);
+    border-radius:6px;
+    font-family:"JetBrains Mono", monospace;
+    font-size:11px;
+    letter-spacing:.1em;
+    color:var(--ink-2);
+    transition:all .15s ease;
+  }
+  .scale .opt .num{
+    display:block;
+    font-family:"Fraunces", serif;
+    font-size:20px;
+    color:var(--ink);
+    margin-bottom:4px;
+    font-feature-settings:"tnum";
+  }
+  .scale input:checked + .opt{
+    background:var(--ink);
+    color:var(--paper-2);
+    border-color:var(--ink);
+  }
+  .scale input:checked + .opt .num{ color:var(--paper); }
+  .scale label:hover .opt{ border-color:var(--ink); }
+  @media (max-width:560px){
+    .scale{ gap:4px; }
+    .scale .opt{ padding:10px 2px 8px; }
+    .scale .opt .num{ font-size:16px; }
+  }
+
+  .submit-row{
+    margin-top:64px;
+    padding-top:32px;
+    border-top:1px solid var(--rule-2);
+    display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;
+  }
+  .legal{
+    font-size:12px;
+    color:var(--ink-3);
+    max-width:46ch;
+    line-height:1.5;
+  }
+  button.submit{
+    appearance:none;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    padding:18px 36px 18px 30px;
+    border-radius:999px;
+    font-family:"Inter", sans-serif;
+    font-size:14px;
+    font-weight:500;
+    letter-spacing:.04em;
+    cursor:pointer;
+    display:inline-flex; align-items:center; gap:14px;
+    transition:transform .15s ease, background .15s ease;
+  }
+  button.submit:hover{ background:var(--accent); transform:translateY(-1px); }
+  button.submit:active{ transform:translateY(0); }
+  button.submit .arrow{ display:inline-block; transition:transform .2s ease; }
+  button.submit:hover .arrow{ transform:translateX(4px); }
+
+  footer.bottom{
+    margin-top:72px;
+    padding-top:24px;
+    border-top:1px solid var(--rule-2);
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:"JetBrains Mono", monospace;
+    font-size:10px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--ink-3);
+  }
+  footer.bottom a{ color:inherit; text-decoration:none; }
+
+  .success{
+    display:none;
+    padding:48px 32px;
+    border:1px solid var(--accent);
+    background:#fff;
+    border-radius:8px;
+    text-align:center;
+  }
+  .success.active{ display:block; }
+  .success h2{
+    font-family:"Fraunces", serif;
+    font-weight:400;
+    font-size:32px;
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .success p{ color:var(--ink-2); max-width:42ch; margin:0 auto; }
+  .success .check{
+    width:48px; height:48px;
+    border-radius:50%;
+    background:var(--accent);
+    color:var(--paper);
+    display:inline-flex; align-items:center; justify-content:center;
+    margin-bottom:18px;
+    font-size:22px;
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <!-- SIDEBAR -->
-        <div class="sidebar">
-            <div class="logo"><i class="fas fa-rocket"></i> AdFlow</div>
-            
-            <div class="nav-section">
-                <div class="nav-label">Main</div>
-                <button class="nav-item active" onclick="switchPage('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</button>
-                <button class="nav-item" onclick="switchPage('clients')"><i class="fas fa-users"></i> Clients</button>
-                <button class="nav-item" onclick="switchPage('campaigns')"><i class="fas fa-bullhorn"></i> Campaigns</button>
-            </div>
 
-            <div class="nav-section">
-                <div class="nav-label">Automation</div>
-                <button class="nav-item" onclick="switchPage('content')"><i class="fas fa-video"></i> Content Library</button>
-                <button class="nav-item" onclick="switchPage('scheduling')"><i class="fas fa-calendar"></i> Scheduling</button>
-                <button class="nav-item" onclick="switchPage('posting')"><i class="fas fa-share"></i> Auto-Posting</button>
-            </div>
+<div class="wrap">
 
-            <div class="nav-section">
-                <div class="nav-label">Analytics</div>
-                <button class="nav-item" onclick="switchPage('performance')"><i class="fas fa-chart-bar"></i> Performance</button>
-                <button class="nav-item" onclick="switchPage('insights')"><i class="fas fa-lightbulb"></i> AI Insights</button>
-                <button class="nav-item" onclick="switchPage('optimization')"><i class="fas fa-magic"></i> Optimization</button>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-label">Management</div>
-                <button class="nav-item" onclick="switchPage('settings')"><i class="fas fa-cog"></i> Settings</button>
-            </div>
-        </div>
-
-        <!-- MAIN CONTENT -->
-        <div class="main">
-            <!-- HEADER -->
-            <div class="header">
-                <div class="header-title">Dashboard</div>
-                <div class="header-stats">
-                    <div class="stat-item">
-                        <div class="stat-label">Active Clients</div>
-                        <div class="stat-value">12</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">Monthly Reach</div>
-                        <div class="stat-value">2.4M</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">Avg. ROI</div>
-                        <div class="stat-value">340%</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- DASHBOARD PAGE -->
-            <div id="dashboard" class="content active">
-                <div class="alert">
-                    <i class="fas fa-check-circle"></i> All systems operational • Last sync: 2 minutes ago
-                </div>
-
-                <h2 style="margin-bottom: 1.5rem;">Client Performance Overview</h2>
-                <div class="grid grid-4">
-                    <div class="card stat-card">
-                        <div class="card-header">
-                            <div class="card-title">Total Posts</div>
-                            <div class="card-icon"><i class="fas fa-share-alt"></i></div>
-                        </div>
-                        <div class="metric">
-                            <div class="metric-label">This Month</div>
-                            <div class="metric-value">156</div>
-                            <div class="metric-change">↑ 24% from last month</div>
-                        </div>
-                    </div>
-
-                    <div class="card stat-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
-                        <div class="card-header">
-                            <div class="card-title">Total Reach</div>
-                            <div class="card-icon"><i class="fas fa-eye"></i></div>
-                        </div>
-                        <div class="metric">
-                            <div class="metric-label">This Month</div>
-                            <div class="metric-value">2.4M</div>
-                            <div class="metric-change">↑ 12% growth</div>
-                        </div>
-                    </div>
-
-                    <div class="card stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                        <div class="card-header">
-                            <div class="card-title">Engagement</div>
-                            <div class="card-icon"><i class="fas fa-heart"></i></div>
-                        </div>
-                        <div class="metric">
-                            <div class="metric-label">Avg. Rate</div>
-                            <div class="metric-value">4.2%</div>
-                            <div class="metric-change">↑ 0.8% improvement</div>
-                        </div>
-                    </div>
-
-                    <div class="card stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                        <div class="card-header">
-                            <div class="card-title">Conversions</div>
-                            <div class="card-icon"><i class="fas fa-shopping-cart"></i></div>
-                        </div>
-                        <div class="metric">
-                            <div class="metric-label">This Month</div>
-                            <div class="metric-value">1.8k</div>
-                            <div class="metric-change">↑ 18% vs last month</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="chart-container">
-                    <div class="chart-title">Weekly Performance</div>
-                    <div class="chart-bar">
-                        <div class="bar" style="height: 65%;">
-                            <div class="bar-label">Mon</div>
-                        </div>
-                        <div class="bar" style="height: 55%;">
-                            <div class="bar-label">Tue</div>
-                        </div>
-                        <div class="bar" style="height: 75%;">
-                            <div class="bar-label">Wed</div>
-                        </div>
-                        <div class="bar" style="height: 85%;">
-                            <div class="bar-label">Thu</div>
-                        </div>
-                        <div class="bar" style="height: 90%;">
-                            <div class="bar-label">Fri</div>
-                        </div>
-                        <div class="bar" style="height: 70%;">
-                            <div class="bar-label">Sat</div>
-                        </div>
-                        <div class="bar" style="height: 60%;">
-                            <div class="bar-label">Sun</div>
-                        </div>
-                    </div>
-                </div>
-
-                <h2 style="margin-bottom: 1.5rem;">Top Performing Clients</h2>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Client</th>
-                                <th>Posts</th>
-                                <th>Reach</th>
-                                <th>Engagement</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr onclick="switchPage('clients')">
-                                <td><strong>Luxury Fashion Co</strong></td>
-                                <td>45</td>
-                                <td>850k</td>
-                                <td>5.2%</td>
-                                <td><span class="badge badge-success">Excellent</span></td>
-                            </tr>
-                            <tr onclick="switchPage('clients')">
-                                <td><strong>Tech Innovations Inc</strong></td>
-                                <td>38</td>
-                                <td>720k</td>
-                                <td>4.8%</td>
-                                <td><span class="badge badge-success">Great</span></td>
-                            </tr>
-                            <tr onclick="switchPage('clients')">
-                                <td><strong>E-Commerce Plus</strong></td>
-                                <td>32</td>
-                                <td>620k</td>
-                                <td>3.9%</td>
-                                <td><span class="badge badge-warning">Good</span></td>
-                            </tr>
-                            <tr onclick="switchPage('clients')">
-                                <td><strong>Real Estate Group</strong></td>
-                                <td>28</td>
-                                <td>580k</td>
-                                <td>3.5%</td>
-                                <td><span class="badge badge-warning">Monitor</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- CLIENTS PAGE -->
-            <div id="clients" class="content">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <h2>Client Success Dashboard</h2>
-                    <button onclick="alert('Add new client form opening...')">+ New Client</button>
-                </div>
-
-                <div class="client-card" onclick="alert('Viewing: Luxury Fashion Co\n\nPosts: 45\nReach: 850k\nEngagement: 5.2%\n\nRevenue: $48,500/month')">
-                    <div class="client-header">
-                        <div>
-                            <div class="client-name">👗 Luxury Fashion Co</div>
-                            <div class="client-industry">Fashion & Apparel</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div class="stat-value" style="color: var(--primary); margin-bottom: 0.25rem;">5.2%</div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Engagement Rate</div>
-                        </div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-                        <div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Posts</div>
-                            <div style="font-size: 1.25rem; font-weight: 600;">45</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Reach</div>
-                            <div style="font-size: 1.25rem; font-weight: 600;">850k</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Revenue</div>
-                            <div style="font-size: 1.25rem; font-weight: 600;">$48.5k</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Status</div>
-                            <div style="font-size: 1.25rem; font-weight: 600;"><span class="badge badge-success">Active</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="client-card" onclick="alert('Viewing: Tech Innovations Inc\n\nPosts: 38\nReach: 720k\nEngagement: 4.8%\n\nRevenue: $42,800/month')">
-                    <div class="client-header">
-                        <div>
-                            <div class="client-name">💻 Tech Innovations Inc</div>
-                            <div class="client-industry">Technology</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div class="stat-value" style="color: var(--primary); margin-bottom: 0.25rem;">4.8%</div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Engagement Rate</div>
-                        </div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-                        <div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Posts</div>
-                            <div style="font-size: 1.25rem; font-weight: 600;">38</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Reach</div>
-                            <div style="font-size: 1.25rem; font-weight: 600;">720k</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Revenue</div>
-                            <div style="font-size: 1.25rem; font-weight: 600;">$42.8k</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Status</div>
-                            <div style="font-size: 1.25rem; font-weight: 600;"><span class="badge badge-success">Active</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="client-card" onclick="alert('Viewing: E-Commerce Plus\n\nPosts: 32\nReach: 620k\nEngagement: 3.9%\n\nRevenue: $35,200/month\n\nRecommendation: Increase posting frequency')">
-                    <div class="client-header">
-                        <div>
-                            <div class="client-name">🛒 E-Commerce Plus</div>
-                            <div class="client-industry">Retail</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div class="stat-value" style="color: var(--warning); margin-bottom: 0.25rem;">3.9%</div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Engagement Rate</div>
-                        </div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-                        <div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Posts</div>
-                            <div style="font-size: 1.25rem; font-weight: 600;">32</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Reach</div>
-                            <div style="font-size: 1.25rem; font-weight: 600;">620k</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Revenue</div>
-                            <div style="font-size: 1.25rem; font-weight: 600;">$35.2k</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Status</div>
-                            <div style="font-size: 1.25rem; font-weight: 600;"><span class="badge badge-warning">Monitor</span></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CONTENT LIBRARY PAGE -->
-            <div id="content" class="content">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <h2>Content Library</h2>
-                    <button onclick="alert('Upload video form opening...')">+ Upload Video</button>
-                </div>
-
-                <div class="video-grid">
-                    <div class="video-card" onclick="alert('Video: Summer Collection\nClients: 3\nScheduled Posts: 12\nStatus: Ready to post')">
-                        <div class="video-thumbnail">📹</div>
-                        <div class="video-info">
-                            <div class="video-title">Summer Collection</div>
-                            <div class="video-status">3 clients • 12 posts</div>
-                        </div>
-                    </div>
-                    <div class="video-card" onclick="alert('Video: Product Demo\nClients: 5\nScheduled Posts: 8\nStatus: Posting in progress')">
-                        <div class="video-thumbnail">🎥</div>
-                        <div class="video-info">
-                            <div class="video-title">Product Demo</div>
-                            <div class="video-status">5 clients • 8 posts</div>
-                        </div>
-                    </div>
-                    <div class="video-card" onclick="alert('Video: Behind the Scenes\nClients: 2\nScheduled Posts: 6\nStatus: Scheduled')">
-                        <div class="video-thumbnail">👥</div>
-                        <div class="video-info">
-                            <div class="video-title">Behind the Scenes</div>
-                            <div class="video-status">2 clients • 6 posts</div>
-                        </div>
-                    </div>
-                    <div class="video-card" onclick="alert('Video: Customer Testimonials\nClients: 4\nScheduled Posts: 10\nStatus: Live')">
-                        <div class="video-thumbnail">⭐</div>
-                        <div class="video-info">
-                            <div class="video-title">Customer Testimonials</div>
-                            <div class="video-status">4 clients • 10 posts</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SCHEDULING PAGE -->
-            <div id="scheduling" class="content">
-                <h2 style="margin-bottom: 1.5rem;">Post Scheduling</h2>
-                <button onclick="alert('Schedule new post form opening...')" style="margin-bottom: 2rem;">+ Schedule Post</button>
-
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Content</th>
-                                <th>Platform</th>
-                                <th>Client</th>
-                                <th>Scheduled Time</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr onclick="alert('Details: Facebook post by Luxury Fashion Co tomorrow at 9 AM')">
-                                <td><strong>Summer Sale Announcement</strong></td>
-                                <td>📘 Facebook</td>
-                                <td>Luxury Fashion Co</td>
-                                <td>Tomorrow 9:00 AM</td>
-                                <td><span class="badge badge-primary">Scheduled</span></td>
-                            </tr>
-                            <tr onclick="alert('Details: Instagram Reel by Tech Innovations in 2 hours')">
-                                <td><strong>Product Demo Reel</strong></td>
-                                <td>📷 Instagram</td>
-                                <td>Tech Innovations</td>
-                                <td>In 2 hours</td>
-                                <td><span class="badge badge-success">Ready</span></td>
-                            </tr>
-                            <tr onclick="alert('Details: TikTok video by E-Commerce Plus at 6 PM')">
-                                <td><strong>Flash Sale Video</strong></td>
-                                <td>🎵 TikTok</td>
-                                <td>E-Commerce Plus</td>
-                                <td>Today 6:00 PM</td>
-                                <td><span class="badge badge-success">Ready</span></td>
-                            </tr>
-                            <tr onclick="alert('Details: LinkedIn article by Tech Innovations at 10 AM')">
-                                <td><strong>Industry Insights</strong></td>
-                                <td>💼 LinkedIn</td>
-                                <td>Tech Innovations</td>
-                                <td>Today 10:00 AM</td>
-                                <td><span class="badge badge-success">Posted</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- POSTING PAGE -->
-            <div id="posting" class="content">
-                <h2 style="margin-bottom: 1.5rem;">Auto-Posting Automation</h2>
-                
-                <div class="grid">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">Daily Auto-Post</div>
-                            <div style="font-size: 1.25rem;">⏰</div>
-                        </div>
-                        <div class="metric">
-                            <div class="metric-label">Configured for</div>
-                            <div class="metric-value">7 clients</div>
-                        </div>
-                        <div class="metric">
-                            <div class="metric-label">Posts per week</div>
-                            <div class="metric-value">49</div>
-                        </div>
-                        <button onclick="alert('Edit auto-posting schedule')" style="margin-top: 1rem; width: 100%;">Configure</button>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">Smart Scheduling</div>
-                            <div style="font-size: 1.25rem;">🧠</div>
-                        </div>
-                        <div class="metric">
-                            <div class="metric-label">AI-optimized times</div>
-                            <div class="metric-value">Enabled</div>
-                        </div>
-                        <div class="metric">
-                            <div class="metric-label">Engagement boost</div>
-                            <div class="metric-value">+34%</div>
-                        </div>
-                        <button onclick="alert('View AI recommendations')" style="margin-top: 1rem; width: 100%;">View Tips</button>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">Failed Posts</div>
-                            <div style="font-size: 1.25rem;">⚠️</div>
-                        </div>
-                        <div class="metric">
-                            <div class="metric-label">This month</div>
-                            <div class="metric-value" style="color: var(--success);">0</div>
-                        </div>
-                        <div class="metric">
-                            <div class="metric-label">Success rate</div>
-                            <div class="metric-value" style="color: var(--success);">99.8%</div>
-                        </div>
-                        <button class="secondary" onclick="alert('No issues to review')" style="margin-top: 1rem; width: 100%;">View Logs</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- INSIGHTS PAGE -->
-            <div id="insights" class="content">
-                <h2 style="margin-bottom: 1.5rem;">AI-Powered Insights & Recommendations</h2>
-
-                <div class="alert" style="background: rgba(99, 102, 241, 0.1); border-left-color: var(--primary);">
-                    <i class="fas fa-star"></i> <strong>Smart Recommendation:</strong> Increase posting frequency for E-Commerce Plus - optimal engagement window is 6-9 PM daily
-                </div>
-
-                <div class="grid">
-                    <div class="card" onclick="alert('Best performing content:\n- Carousel posts (+18%)\n- Video content (+24%)\n- User testimonials (+32%)')">
-                        <div class="card-header">
-                            <div class="card-title">Top Performers</div>
-                            <div style="font-size: 1.25rem;">🏆</div>
-                        </div>
-                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
-                            <div>✓ Carousel posts → +18%</div>
-                            <div>✓ Video content → +24%</div>
-                            <div>✓ User testimonials → +32%</div>
-                        </div>
-                    </div>
-
-                    <div class="card" onclick="alert('Optimization opportunities:\n- Test different hashtag combinations\n- Increase posting frequency\n- Feature more user-generated content')">
-                        <div class="card-header">
-                            <div class="card-title">Opportunities</div>
-                            <div style="font-size: 1.25rem;">💡</div>
-                        </div>
-                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
-                            <div>• Test hashtag combinations</div>
-                            <div>• Increase posting frequency</div>
-                            <div>• Feature UGC more</div>
-                        </div>
-                    </div>
-
-                    <div class="card" onclick="alert('Next 30-day forecast:\n- Reach growth: +28%\n- Engagement rate: Stable at 4.2%\n- Expected ROI increase: +15%')">
-                        <div class="card-header">
-                            <div class="card-title">30-Day Forecast</div>
-                            <div style="font-size: 1.25rem;">📊</div>
-                        </div>
-                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
-                            <div>📈 Reach: +28%</div>
-                            <div>💬 Engagement: Stable</div>
-                            <div>💰 ROI: +15%</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PERFORMANCE PAGE -->
-            <div id="performance" class="content">
-                <h2 style="margin-bottom: 1.5rem;">Detailed Performance Analytics</h2>
-
-                <div class="chart-container">
-                    <div class="chart-title">Monthly Performance Trend</div>
-                    <div class="chart-bar">
-                        <div class="bar" style="height: 40%;"><div class="bar-label">Jan</div></div>
-                        <div class="bar" style="height: 52%;"><div class="bar-label">Feb</div></div>
-                        <div class="bar" style="height: 61%;"><div class="bar-label">Mar</div></div>
-                        <div class="bar" style="height: 73%;"><div class="bar-label">Apr</div></div>
-                        <div class="bar" style="height: 85%;"><div class="bar-label">May</div></div>
-                    </div>
-                </div>
-
-                <div class="grid">
-                    <div class="card">
-                        <div class="metric">
-                            <div class="metric-label">Total Impressions</div>
-                            <div class="metric-value">4.2M</div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="metric">
-                            <div class="metric-label">Total Clicks</div>
-                            <div class="metric-value">156k</div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="metric">
-                            <div class="metric-label">Conversion Rate</div>
-                            <div class="metric-value">3.2%</div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="metric">
-                            <div class="metric-label">Cost per Lead</div>
-                            <div class="metric-value">$12.50</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- OPTIMIZATION PAGE -->
-            <div id="optimization" class="content">
-                <h2 style="margin-bottom: 1.5rem;">Automated Optimization</h2>
-
-                <div class="alert" style="background: rgba(16, 185, 129, 0.1); border-left-color: var(--success);">
-                    <i class="fas fa-rocket"></i> <strong>Optimization in Progress:</strong> AI is automatically adjusting posting times, hashtags, and audience targeting for maximum ROI
-                </div>
-
-                <div class="grid">
-                    <div class="card" onclick="alert('Budget allocation:\n- Luxury Fashion Co: 35%\n- Tech Innovations: 30%\n- E-Commerce Plus: 25%\n- Others: 10%')">
-                        <div class="card-header">
-                            <div class="card-title">Budget Optimization</div>
-                            <div style="font-size: 1.25rem;">💰</div>
-                        </div>
-                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
-                            <div>Allocating budget to top performers</div>
-                            <div>35% to highest ROI clients</div>
-                            <div>Real-time adjustments enabled</div>
-                        </div>
-                    </div>
-
-                    <div class="card" onclick="alert('Posting time optimization:\n- Best times identified via AI\n- 34% engagement improvement\n- Next adjustment: Tomorrow')">
-                        <div class="card-header">
-                            <div class="card-title">Posting Time Optimization</div>
-                            <div style="font-size: 1.25rem;">⏱️</div>
-                        </div>
-                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
-                            <div>AI-identified best posting windows</div>
-                            <div>Engagement boost: +34%</div>
-                            <div>Auto-adjusts daily</div>
-                        </div>
-                    </div>
-
-                    <div class="card" onclick="alert('Content optimization:\n- Testing 12 variations/week\n- Best performers scaled immediately\n- Underperformers revised')">
-                        <div class="card-header">
-                            <div class="card-title">Content Optimization</div>
-                            <div style="font-size: 1.25rem;">📝</div>
-                        </div>
-                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
-                            <div>A/B testing 12 variations/week</div>
-                            <div>Winners scaled immediately</div>
-                            <div>Performance-based</div>
-                        </div>
-                    </div>
-
-                    <div class="card" onclick="alert('Audience targeting:\n- Behavioral targeting active\n- Interest-based refinement\n- 28% better conversion')">
-                        <div class="card-header">
-                            <div class="card-title">Audience Targeting</div>
-                            <div style="font-size: 1.25rem;">🎯</div>
-                        </div>
-                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
-                            <div>Behavioral targeting active</div>
-                            <div>Interest-based refinement</div>
-                            <div>28% better conversion</div>
-                        </div>
-                    </div>
-
-                    <div class="card" onclick="alert('Platform optimization:\n- Facebook: +42% ROI\n- Instagram: +38% engagement\n- TikTok: +51% reach')">
-                        <div class="card-header">
-                            <div class="card-title">Platform-Specific</div>
-                            <div style="font-size: 1.25rem;">📱</div>
-                        </div>
-                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
-                            <div>Facebook ROI: +42%</div>
-                            <div>Instagram engagement: +38%</div>
-                            <div>TikTok reach: +51%</div>
-                        </div>
-                    </div>
-
-                    <div class="card" onclick="alert('Competitor analysis:\n- Tracking 15 competitors\n- Gap analysis weekly\n- Opportunities identified')">
-                        <div class="card-header">
-                            <div class="card-title">Competitive Analysis</div>
-                            <div style="font-size: 1.25rem;">📈</div>
-                        </div>
-                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
-                            <div>Tracking 15 competitors</div>
-                            <div>Gap analysis weekly</div>
-                            <div>Opportunities highlighted</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SETTINGS PAGE -->
-            <div id="settings" class="content">
-                <h2 style="margin-bottom: 1.5rem;">Account Settings</h2>
-                
-                <div class="card">
-                    <div class="form-group">
-                        <label>Agency Name</label>
-                        <input type="text" value="AdFlow Agency" />
-                    </div>
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" value="admin@adflow.com" />
-                    </div>
-                    <div class="form-group">
-                        <label>API Key</label>
-                        <input type="text" value="sk_live_••••••••••••••••" />
-                    </div>
-                    <button onclick="alert('✓ Settings saved!')">Save Changes</button>
-                </div>
-            </div>
-        </div>
+  <div class="hero">
+    <div style="background:linear-gradient(135deg, #1F4D3F 0%, #13161A 100%); color:#F2EEE5; padding:32px 28px; border-radius:8px; margin-bottom:48px; text-align:center;">
+      <h2 style="margin:0; font-family:'Fraunces', serif; font-size:40px; font-weight:400; line-height:1.2;">Welcome to the team</h2>
+      <p style="margin:12px 0 0 0; font-size:15px; opacity:0.95; max-width:50ch; margin-left:auto; margin-right:auto;">We're excited to work with you. Let's create something amazing together.</p>
     </div>
 
+    <h1 style="margin-bottom:32px;">MINEX MEDIA Onboarding</h1>
+    <p class="lede" style="margin-top:0">
+      Let's get to know your business. Anything you don't have handy, leave blank — we'll fill the gaps live.
+    </p>
+    <div class="timing"><span class="dot"></span>~ 12 minutes · 6 sections</div>
+  </div>
+
+  <form id="intakeForm"
+        name="onboarding-intake"
+        method="POST">
+
+    <!-- 01 — ABOUT YOU -->
+    <section class="field-group">
+      <div class="sect-head">
+        <div class="num">01</div>
+        <h2>About You</h2>
+        <div class="sub">Who you are and how to reach you.</div>
+      </div>
+      <div class="fields">
+        <div class="row">
+          <label class="f">
+            <span class="lab">Your full name <span class="req">*</span></span>
+            <input type="text" name="full_name" required placeholder="First and last">
+          </label>
+          <label class="f">
+            <span class="lab">Business name <span class="req">*</span></span>
+            <input type="text" name="business_name" required placeholder="Your company">
+          </label>
+        </div>
+        <div class="row">
+          <label class="f">
+            <span class="lab">Email <span class="req">*</span></span>
+            <input type="email" name="email" required placeholder="you@company.com">
+          </label>
+          <label class="f">
+            <span class="lab">Phone</span>
+            <input type="tel" name="phone" placeholder="+1 (___) ___-____">
+          </label>
+        </div>
+        <div class="row">
+          <label class="f">
+            <span class="lab">Website</span>
+            <input type="url" name="website" placeholder="https://">
+          </label>
+          <label class="f">
+            <span class="lab">Service area <span class="req">*</span></span>
+            <input type="text" name="service_area" required placeholder="e.g. Greater Vancouver, North America, Global">
+          </label>
+        </div>
+        <label class="f">
+          <span class="lab">Social links <span class="hint">Instagram, TikTok, LinkedIn, YouTube, etc.</span></span>
+          <textarea name="social_links" placeholder="Drop the URLs to every account you want us to look at."></textarea>
+        </label>
+      </div>
+    </section>
+
+    <!-- 02 — GOALS -->
+    <section class="field-group">
+      <div class="sect-head">
+        <div class="num">02</div>
+        <h2>Goals &amp; Vision</h2>
+        <div class="sub">What we're aiming at — and what hitting the bullseye looks like.</div>
+      </div>
+      <div class="fields">
+        <label class="f">
+          <span class="lab">What do you want the content / ads to do? <span class="hint">awareness, leads, sales, hires, community…</span></span>
+          <textarea name="content_purpose" placeholder="e.g. Generate qualified inbound leads for our top 2 services + build authority in the niche."></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">Top 1–3 goals for the next 30–90 days <span class="req">*</span></span>
+          <textarea name="goals_30_90" required placeholder="Be specific — numbers, deadlines, outcomes."></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">If we crushed this project, what would success look like? <span class="req">*</span></span>
+          <textarea name="success_picture" required placeholder="Paint the picture. Revenue? Inbox full of leads? Booked-out calendar? Brand recognition?"></textarea>
+        </label>
+      </div>
+    </section>
+
+    <!-- 03 — YOUR OFFER -->
+    <section class="field-group">
+      <div class="sect-head">
+        <div class="num">03</div>
+        <h2>Your Offer</h2>
+        <div class="sub">What you sell, who you sell it to, and why you win.</div>
+      </div>
+      <div class="fields">
+        <label class="f">
+          <span class="lab">Your main offer(s) + starting price <span class="req">*</span></span>
+          <textarea name="offers" required placeholder="e.g. 1:1 coaching from $5K · group program from $1,200 · done-for-you service from $8K/mo"></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">Ideal customer — who do you want to attract? <span class="req">*</span></span>
+          <textarea name="ideal_customer" required placeholder="Demographics, role, industry, pain points, what they've tried before…"></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">Your biggest differentiator vs competitors <span class="req">*</span></span>
+          <textarea name="differentiator" required placeholder="The one thing only you can say. The unfair advantage. The reason clients pick you."></textarea>
+        </label>
+      </div>
+    </section>
+
+    <!-- 04 — BRAND & POSITIONING -->
+    <section class="field-group">
+      <div class="sect-head">
+        <div class="num">04</div>
+        <h2>Brand &amp; Positioning</h2>
+        <div class="sub">The look, feel, and personality we'll build around.</div>
+      </div>
+      <div class="fields">
+        <label class="f">
+          <span class="lab">Describe your brand in 3–5 words</span>
+          <input type="text" name="brand_words" placeholder="e.g. Confident, technical, warm, no-nonsense, premium">
+        </label>
+
+        <label class="f">
+          <span class="lab">Brands / pages you love (links) — and why</span>
+          <textarea name="inspiration" placeholder="Drop links to accounts, brands, or campaigns you admire and what hits for you about them."></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">Primary brand color(s) <span class="hint">click to pick — or paste hex codes below</span></span>
+          <div class="swatch-row" id="swatchRow">
+            <span class="swatch"><input type="color" name="brand_color_1" value="#1F4D3F"></span>
+            <span class="swatch"><input type="color" name="brand_color_2" value="#13161A"></span>
+            <span class="swatch"><input type="color" name="brand_color_3" value="#F2EEE5"></span>
+          </div>
+          <input type="text" name="brand_colors_hex" style="margin-top:10px" placeholder="Or paste hex codes: #FF5733, #1A1A1A, etc.">
+        </label>
+
+        <label class="f">
+          <span class="lab">Visual style preference</span>
+          <div class="checks">
+            <label><input type="checkbox" name="visual_style" value="Clean / minimal"><span class="pill">Clean / minimal</span></label>
+            <label><input type="checkbox" name="visual_style" value="Bold / high-energy"><span class="pill">Bold / high-energy</span></label>
+            <label><input type="checkbox" name="visual_style" value="Editorial / refined"><span class="pill">Editorial / refined</span></label>
+            <label><input type="checkbox" name="visual_style" value="Documentary / raw"><span class="pill">Documentary / raw</span></label>
+            <label><input type="checkbox" name="visual_style" value="Cinematic"><span class="pill">Cinematic</span></label>
+            <label><input type="checkbox" name="visual_style" value="Punchy / meme-y"><span class="pill">Punchy / meme-y</span></label>
+            <label><input type="checkbox" name="visual_style" value="Luxury"><span class="pill">Luxury</span></label>
+            <label><input type="checkbox" name="visual_style" value="Not sure — guide us"><span class="pill">Not sure — guide us</span></label>
+          </div>
+        </label>
+
+        <label class="f">
+          <span class="lab">Logo &amp; brand assets <span class="hint">paste a Drive / Dropbox / Notion link to the folder</span></span>
+          <input type="url" name="brand_assets_link" placeholder="https://drive.google.com/…">
+          <span style="display:block; margin-top:6px; font-size:12px; color:var(--ink-3); line-height:1.5;">
+            Logo files, fonts, brand book, photo library — anything you've got. If you don't have a folder yet, just drop your logo files into a fresh Drive folder and share that link.
+          </span>
+        </label>
+      </div>
+    </section>
+
+    <!-- 05 — CONTENT & FILMING -->
+    <section class="field-group">
+      <div class="sect-head">
+        <div class="num">05</div>
+        <h2>Content &amp; Filming</h2>
+        <div class="sub">What to make, how to make it, and what to steer clear of.</div>
+      </div>
+      <div class="fields">
+        <label class="f">
+          <span class="lab">Topics you want us to make scripts about</span>
+          <textarea name="script_topics" placeholder="e.g. behind-the-scenes of the service, client wins, common myths, pricing transparency, hot takes…"></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">Anything that's "off-limits" to film or say?</span>
+          <textarea name="off_limits" placeholder="Topics, phrases, competitors, claims, faces, locations — anywhere we shouldn't go."></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">Content style + preferences</span>
+          <textarea name="content_prefs" placeholder="Long-form vs short-form, talking head vs b-roll heavy, captions style, music vibe, etc."></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">On-camera comfort level <span class="hint">1 = please don't film me  ·  5 = ready to host the show</span></span>
+          <div class="scale">
+            <label><input type="radio" name="oncamera_level" value="1"><span class="opt"><span class="num">1</span>Hide me</span></label>
+            <label><input type="radio" name="oncamera_level" value="2"><span class="opt"><span class="num">2</span>Reluctant</span></label>
+            <label><input type="radio" name="oncamera_level" value="3"><span class="opt"><span class="num">3</span>Open</span></label>
+            <label><input type="radio" name="oncamera_level" value="4"><span class="opt"><span class="num">4</span>Comfortable</span></label>
+            <label><input type="radio" name="oncamera_level" value="5"><span class="opt"><span class="num">5</span>Natural</span></label>
+          </div>
+        </label>
+
+        <label class="f">
+          <span class="lab">Best filming days / times</span>
+          <textarea name="filming_availability" placeholder="e.g. Tuesdays + Thursdays, mornings before 11am. Or: weekends only."></textarea>
+        </label>
+      </div>
+    </section>
+
+    <!-- 06 — WORKING TOGETHER -->
+    <section class="field-group">
+      <div class="sect-head">
+        <div class="num">06</div>
+        <h2>Working Together</h2>
+        <div class="sub">Budget, working style, and anything else we should know.</div>
+      </div>
+      <div class="fields">
+        <label class="f">
+          <span class="lab">Monthly ad budget range</span>
+          <select name="ad_budget">
+            <option value="">Select…</option>
+            <option>Under $1K / mo</option>
+            <option>$1K – $5K / mo</option>
+            <option>$5K – $10K / mo</option>
+            <option>$10K – $25K / mo</option>
+            <option>$25K – $50K / mo</option>
+            <option>$50K+ / mo</option>
+            <option>Not sure yet</option>
+          </select>
+        </label>
+
+        <label class="f">
+          <span class="lab">What does a great working relationship look like to you?</span>
+          <textarea name="relationship" placeholder="Cadence of updates, where we communicate (Slack/email/calls), how decisions get made, what makes you feel taken care of."></textarea>
+        </label>
+
+        <label class="f">
+          <span class="lab">Anything else we should know?</span>
+          <textarea name="anything_else" placeholder="Constraints, sacred cows, agencies you've fired and why, internal politics, dream outcomes…"></textarea>
+        </label>
+      </div>
+    </section>
+
+    <!-- PLATFORM LOGIN CREDENTIALS -->
+    <section class="field-group">
+      <div class="sect-head">
+        <div class="num">07</div>
+        <h2>Platform Login Information</h2>
+        <div class="sub">Provide credentials so we can access Meta and other platforms to post your content.</div>
+      </div>
+      <div class="fields">
+        <label class="f">
+          <span class="lab">Meta (Facebook/Instagram) Login Credentials</span>
+          <textarea name="meta_credentials" placeholder="Username/email and password, or admin panel access link. Let us know which platforms and accounts we should have access to."></textarea>
+        </label>
+        <label class="f">
+          <span class="lab">Other Platforms (TikTok, LinkedIn, YouTube, etc.)</span>
+          <textarea name="other_platform_credentials" placeholder="List any other social media or marketing platforms you'd like us to manage, along with login information or admin access."></textarea>
+        </label>
+        <p style="font-size:12px; color:var(--ink-3); margin-top:12px;">We'll keep your credentials secure and use them only to manage your content as agreed. Your security and privacy are our top priorities.</p>
+      </div>
+    </section>
+
+    <!-- WHAT'S NEXT -->
+    <section class="field-group" style="border-top:1px solid var(--rule-2); padding:48px 0 8px; display:grid; grid-template-columns:140px 1fr; gap:40px;">
+      <div class="sect-head">
+        <div class="num">Next</div>
+        <h2>What's Next</h2>
+      </div>
+      <div class="fields" style="display:grid; gap:22px;">
+        <div style="background:var(--paper-2); padding:20px; border-radius:6px; border-left:4px solid var(--accent);">
+          <div style="font-weight:600; font-size:14px; margin-bottom:10px; color:var(--ink);">We'll confirm the shoot day & filming schedule</div>
+          <div style="font-size:13px; color:var(--ink-2); line-height:1.6;">Once we receive your payment, we'll coordinate dates that work best for you and lock in the shoot schedule.</div>
+        </div>
+        <div style="background:var(--paper-2); padding:20px; border-radius:6px; border-left:4px solid var(--accent);">
+          <div style="font-weight:600; font-size:14px; margin-bottom:10px; color:var(--ink);">We'll create all scripts and start pre-production</div>
+          <div style="font-size:13px; color:var(--ink-2); line-height:1.6;">After payment is received, we'll develop comprehensive scripts based on your answers and begin all pre-production work to prepare for filming.</div>
+        </div>
+        <div style="background:var(--paper-2); padding:20px; border-radius:6px; border-left:4px solid var(--accent);">
+          <div style="font-weight:600; font-size:14px; margin-bottom:10px; color:var(--ink);">Let's create something amazing together</div>
+          <div style="font-size:13px; color:var(--ink-2); line-height:1.6;">By signing below and submitting this intake, you're confirming you're ready to move forward with Minex Media.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MINEX MEDIA GUARANTEE -->
+    <section style="margin:48px 0; padding:0; background:transparent;">
+      <div style="display:flex; align-items:center; gap:12px; background:linear-gradient(135deg, #F2EEE5 0%, #EAE5D9 100%); padding:24px 40px; border-radius:8px 8px 0 0; border-left:4px solid var(--accent); cursor:pointer;" onclick="document.getElementById('guaranteeContent').classList.toggle('open'); document.getElementById('guaranteeToggle').classList.toggle('open');">
+        <div style="font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--accent);">Contract</div>
+        <span id="guaranteeToggle" class="guarantee-toggle">+</span>
+        <h3 style="font-family:'Fraunces', serif; font-size:20px; font-weight:400; margin:0; color:var(--ink);">The Minex Media Guarantee</h3>
+      </div>
+
+      <div id="guaranteeContent" class="guarantee-content">
+        <div style="padding:40px; background:var(--field-bg); border-left:4px solid var(--accent);">
+          <div style="font-size:13px; line-height:1.8; color:var(--ink-2); margin-bottom:20px;">
+            <strong style="color:var(--ink); display:block; margin-bottom:12px;">MINEX MEDIA 30-DAY RESULTS GUARANTEE</strong>
+
+            <p style="margin:12px 0;">
+              <strong>Our Promise:</strong> We guarantee results within 30 days of project launch. Based on your selected package, we commit to delivering the guaranteed number of qualified leads outlined in your agreement.
+            </p>
+
+            <p style="margin:12px 0;">
+              <strong>Guaranteed Deliverables:</strong>
+            </p>
+            <ul style="margin:8px 0 12px 20px; padding:0;">
+              <li style="margin:6px 0;">Premium Package: 15+ qualified leads within 30 days</li>
+              <li style="margin:6px 0;">Professional Package: 10+ qualified leads within 30 days</li>
+              <li style="margin:6px 0;">Starter Package: 5+ qualified leads within 30 days</li>
+            </ul>
+
+            <p style="margin:12px 0;">
+              <strong>If We Don't Deliver:</strong> If we fall short of the guaranteed lead count by the 30-day mark, we work for free until we meet or exceed the promised results. No hidden fees. No excuses.
+            </p>
+
+            <p style="margin:12px 0;">
+              <strong>What This Covers:</strong> All content creation, ad strategy, posting, monitoring, and optimization. Our full team is committed to your success.
+            </p>
+
+            <p style="margin:12px 0;">
+              <strong>Your Commitment:</strong> Prompt feedback, timely payments, and honest communication so we can iterate quickly and continuously improve results.
+            </p>
+
+            <p style="margin:12px 0; font-size:12px; color:var(--ink-3);">
+              By checking the box below, you acknowledge that you have read and fully understand the Minex Media Guarantee and agree to its terms.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:24px 40px; background:linear-gradient(135deg, #F2EEE5 0%, #EAE5D9 100%); border-radius:0 0 8px 8px; border-left:4px solid var(--accent); border-top:1px solid var(--rule-2);">
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+          <input type="checkbox" name="read_guarantee" required style="width:18px; height:18px; cursor:pointer; accent-color:var(--accent);">
+          <span style="font-size:14px; color:var(--ink);">I have read and fully agree to the Minex Media Guarantee</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- SIGNATURE CONFIRMATION -->
+    <section class="field-group">
+      <div class="sect-head">
+        <h2 style="color:var(--accent); margin-bottom:0;">Sign to confirm you agree to move forward</h2>
+      </div>
+      <div class="fields">
+        <p style="font-size:13px; color:var(--ink-3); margin-bottom:24px;">By signing, you confirm you're ready to begin our partnership and agree to the terms below.</p>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:40px; margin-top:32px;">
+          <!-- CLIENT SIGNATURE -->
+          <div>
+            <label class="f">
+              <span class="lab">Client Signature <span class="req">*</span></span>
+              <input type="text" name="signature" id="signatureInput" required placeholder="Type your name here to sign" onchange="updateSignatureDisplay(); this.form.dispatchEvent(new Event('change'));" style="margin-bottom:12px;">
+            </label>
+            <p id="signatureDisplay" style="font-family:'Brush Script MT', 'Lucida Handwriting', cursive; font-size:32px; color:var(--ink); margin:8px 0 0 0; font-weight:normal;"></p>
+            <p style="font-size:12px; color:var(--ink-3); margin:8px 0 0 0;">Client</p>
+            <p style="font-size:11px; color:var(--ink-3); margin:4px 0 0 0; border-top:1px solid var(--border); padding-top:8px;">Date: <span id="clientDate"></span></p>
+          </div>
+
+          <!-- MINEX MEDIA SIGNATURE (PRE-FILLED) -->
+          <div>
+            <p style="font-size:12px; color:var(--ink-3); margin:0 0 12px 0; font-weight:600;">MINEX MEDIA Representative</p>
+            <p style="font-family:'Brush Script MT', 'Lucida Handwriting', cursive; font-size:32px; color:var(--ink); margin:8px 0 0 0; font-weight:normal;">Olivier Bruneau</p>
+            <p style="font-size:12px; color:var(--ink-3); margin:8px 0 0 0;">Owner - Founder</p>
+            <p style="font-size:11px; color:var(--ink-3); margin:4px 0 0 0; border-top:1px solid var(--border); padding-top:8px;">Date: <span id="repDate"></span></p>
+            <input type="hidden" name="representative_signature" value="Olivier Bruneau">
+          </div>
+        </div>
+      </div>
+    </section>
+
     <script>
-        function switchPage(pageId) {
-            // Hide all content
-            document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
-            // Show selected page
-            document.getElementById(pageId).classList.add('active');
-            
-            // Update nav
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            // Update header
-            const titles = {
-                dashboard: 'Dashboard',
-                clients: 'Client Success Dashboard',
-                campaigns: 'Campaigns',
-                content: 'Content Library',
-                scheduling: 'Post Scheduling',
-                posting: 'Auto-Posting Automation',
-                performance: 'Performance Analytics',
-                insights: 'AI Insights',
-                optimization: 'Automated Optimization',
-                settings: 'Settings'
-            };
-            document.querySelector('.header-title').textContent = titles[pageId] || 'AdFlow';
-        }
+      function updateSignatureDisplay() {
+        const signatureInput = document.getElementById('signatureInput');
+        const signatureDisplay = document.getElementById('signatureDisplay');
+        signatureDisplay.textContent = signatureInput.value || '';
+      }
+
+      function setCurrentDates() {
+        const today = new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        document.getElementById('clientDate').textContent = today;
+        document.getElementById('repDate').textContent = today;
+      }
+
+      document.getElementById('signatureInput').addEventListener('input', updateSignatureDisplay);
+      setCurrentDates();
+
+      // Update dates at midnight every day
+      setInterval(setCurrentDates, 60000); // Check every minute in case past midnight
     </script>
+
+    <div class="submit-row">
+      <p class="legal">
+        By submitting this form and signing below, you confirm that you've reviewed the guarantee above and are ready to begin our partnership. We treat your responses as confidential and use them only to prepare for our work together.
+      </p>
+      <button type="submit" class="submit">
+        Submit intake & Sign
+        <span class="arrow">→</span>
+      </button>
+    </div>
+
+  </form>
+
+  <div class="success" id="successMsg">
+    <div class="check">✓</div>
+    <h2>Got it. Talk soon.</h2>
+    <p>Your intake just landed in our inbox. We'll review it and come back within one business day with next steps.</p>
+    <button id="downloadBtn" class="submit" style="margin-top:32px; display:none;">
+      Download your form
+      <span class="arrow">→</span>
+    </button>
+  </div>
+
+  <footer class="bottom">
+    <span>© Minex Media · Velocity Engineers</span>
+    <a href="mailto:hello@minexmedia.com">hello@minexmedia.com</a>
+  </footer>
+
+</div>
+
+<script>
+  const form = document.getElementById('intakeForm');
+  const success = document.getElementById('successMsg');
+  const downloadBtn = document.getElementById('downloadBtn');
+  let formData = null;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector('button.submit');
+    btn.disabled = true;
+    btn.innerHTML = 'Sending… <span class="arrow">→</span>';
+
+    try {
+      const fd = new FormData(form);
+      formData = Object.fromEntries(fd);
+
+      const response = await fetch('/api/submit-form', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        form.style.display = 'none';
+        success.classList.add('active');
+        downloadBtn.style.display = 'block';
+        window.scrollTo({ top: success.offsetTop - 80, behavior:'smooth' });
+      } else {
+        btn.disabled = false;
+        btn.innerHTML = 'Submit intake <span class="arrow">→</span>';
+        alert('Error submitting form. Please try again.');
+      }
+    } catch (error) {
+      btn.disabled = false;
+      btn.innerHTML = 'Submit intake <span class="arrow">→</span>';
+      alert('Error submitting form. Please try again.');
+    }
+  });
+
+  downloadBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (!formData) return;
+
+    downloadBtn.disabled = true;
+    downloadBtn.innerHTML = 'Downloading… <span class="arrow">→</span>';
+
+    try {
+      const response = await fetch('/api/download-form', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `intake_form_${new Date().toISOString().split('T')[0]}.html`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('Error downloading form. Please try again.');
+      }
+    } catch (error) {
+      alert('Error downloading form. Please try again.');
+    } finally {
+      downloadBtn.disabled = false;
+      downloadBtn.innerHTML = 'Download your form <span class="arrow">→</span>';
+    }
+  });
+</script>
+
 </body>
 </html>
+<!-- Redeploy trigger: Fri May  8 21:14:01 PDT 2026 -->
