@@ -1,7 +1,6 @@
 import { Resend } from 'resend';
 import fs from 'fs';
 import path from 'path';
-import { generatePdf } from 'html-pdf-node';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -76,14 +75,27 @@ function prefillFormHTML(formHTML, data) {
 
 async function generatePDF(filledFormHTML) {
   try {
-    const options = {
-      format: 'A4',
-      margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' },
-    };
+    const response = await fetch('https://api.pdfshift.io/v3/convert/html', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${Buffer.from(`api:${process.env.PDFSHIFT_API_KEY}`).toString('base64')}`,
+      },
+      body: JSON.stringify({
+        source: filledFormHTML,
+        landscape: false,
+        use_print_media: true,
+      }),
+    });
 
-    const file = { content: filledFormHTML };
-    const pdfBuffer = await generatePdf(file, options);
-    return pdfBuffer;
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('PDFShift error:', error);
+      throw new Error(`PDFShift conversion failed: ${response.statusText}`);
+    }
+
+    const buffer = await response.buffer();
+    return buffer;
   } catch (error) {
     console.error('PDF generation error:', error);
     throw error;
