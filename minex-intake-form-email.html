@@ -782,15 +782,13 @@
             <p style="font-size:11px; color:var(--ink-3); margin:4px 0 0 0; border-top:1px solid var(--border); padding-top:8px;">Date: <span id="clientDate"></span></p>
           </div>
 
-          <!-- MINEX MEDIA SIGNATURE -->
+          <!-- MINEX MEDIA SIGNATURE (PRE-FILLED) -->
           <div>
-            <label class="f">
-              <span class="lab">MINEX MEDIA Representative <span class="req">*</span></span>
-              <input type="text" name="representative_signature" id="representativeInput" required placeholder="Type your name here to sign" onchange="updateRepresentativeDisplay(); this.form.dispatchEvent(new Event('change'));" style="margin-bottom:12px;">
-            </label>
-            <p id="representativeDisplay" style="font-family:'Brush Script MT', 'Lucida Handwriting', cursive; font-size:32px; color:var(--ink); margin:8px 0 0 0; font-weight:normal;"></p>
-            <p style="font-size:12px; color:var(--ink-3); margin:8px 0 0 0;">MINEX MEDIA</p>
+            <p style="font-size:12px; color:var(--ink-3); margin:0 0 12px 0; font-weight:600;">MINEX MEDIA Representative</p>
+            <p style="font-family:'Brush Script MT', 'Lucida Handwriting', cursive; font-size:32px; color:var(--ink); margin:8px 0 0 0; font-weight:normal;">Olivier Bruneau</p>
+            <p style="font-size:12px; color:var(--ink-3); margin:8px 0 0 0;">Owner - Founder</p>
             <p style="font-size:11px; color:var(--ink-3); margin:4px 0 0 0; border-top:1px solid var(--border); padding-top:8px;">Date: <span id="repDate"></span></p>
+            <input type="hidden" name="representative_signature" value="Olivier Bruneau">
           </div>
         </div>
       </div>
@@ -803,12 +801,6 @@
         signatureDisplay.textContent = signatureInput.value || '';
       }
 
-      function updateRepresentativeDisplay() {
-        const repInput = document.getElementById('representativeInput');
-        const repDisplay = document.getElementById('representativeDisplay');
-        repDisplay.textContent = repInput.value || '';
-      }
-
       function setCurrentDates() {
         const today = new Date().toLocaleDateString();
         document.getElementById('clientDate').textContent = today;
@@ -816,7 +808,6 @@
       }
 
       document.getElementById('signatureInput').addEventListener('input', updateSignatureDisplay);
-      document.getElementById('representativeInput').addEventListener('input', updateRepresentativeDisplay);
       setCurrentDates();
     </script>
 
