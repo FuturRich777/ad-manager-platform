@@ -12,7 +12,7 @@ async function generatePDF(data) {
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
 
-    // Header
+    // Header - PDF generated with pdfkit
     doc.fontSize(24).text('Client Intake Form', { align: 'center' });
     doc.fontSize(10).text(`Minex Media · Submitted ${new Date().toLocaleDateString()}`, { align: 'center' });
     doc.moveTo(40, doc.y).lineTo(555, doc.y).stroke();
