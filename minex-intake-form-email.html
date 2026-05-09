@@ -150,6 +150,17 @@
     display:grid;
     grid-template-columns:140px 1fr;
     gap:40px;
+    position:relative;
+  }
+  section.field-group::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    width:4px;
+    height:40px;
+    background:linear-gradient(180deg, var(--accent), transparent);
+    border-radius:2px;
   }
   @media (max-width:720px){
     section.field-group{ grid-template-columns:1fr; gap:18px; }
@@ -397,6 +408,12 @@
   </header>
 
   <div class="hero">
+    <div style="background:linear-gradient(135deg, #1F4D3F 0%, #13161A 100%); color:#F2EEE5; padding:32px 28px; border-radius:8px; margin-bottom:48px; text-align:center;">
+      <div style="font-size:14px; letter-spacing:.1em; text-transform:uppercase; margin-bottom:8px; opacity:0.9;">Welcome</div>
+      <h2 style="margin:0; font-family:'Fraunces', serif; font-size:40px; font-weight:400; line-height:1.2;">Welcome to the team</h2>
+      <p style="margin:12px 0 0 0; font-size:15px; opacity:0.95; max-width:50ch; margin-left:auto; margin-right:auto;">We're excited to work with you. Let's create something amazing together.</p>
+    </div>
+
     <div class="eyebrow">Velocity Engineers · Content + Ads</div>
     <h1>Tell us about you. <em>We'll build the engine.</em></h1>
     <p class="lede">
