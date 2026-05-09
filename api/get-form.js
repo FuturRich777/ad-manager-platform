@@ -43,6 +43,8 @@ function prefillFormHTML(formHTML, data) {
     'relationship': data.relationship,
     'anything_else': data.anything_else,
     'signature': data.signature,
+    'representative_signature': data.representative_signature,
+    'platform_logins': data.platform_logins,
   };
 
   for (const [fieldName, value] of Object.entries(fieldMap)) {
