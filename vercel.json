@@ -1,9 +1,9 @@
 {
-  "buildCommand": "rm -f public/index.html && cp minex-intake-form-email.html public/index.html && echo 'Form deployed with Olivier Bruneau signature'",
+  "buildCommand": "bash build.sh",
   "outputDirectory": "public",
   "installCommand": "npm install",
   "public": true,
   "env": {
-    "REDEPLOY_TIMESTAMP": "2026-05-09T12:00:00Z"
+    "REDEPLOY_TIMESTAMP": "2026-05-09T12:01:00Z"
   }
 }
