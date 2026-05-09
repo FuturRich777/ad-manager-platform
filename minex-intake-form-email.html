@@ -286,6 +286,35 @@
   .checks label:hover .pill{ border-color:var(--ink); }
   .checks input:focus-visible + .pill{ box-shadow:0 0 0 3px rgba(31,77,63,.18); }
 
+  .guarantee-header{
+    display:flex; align-items:center; gap:12px; cursor:pointer; padding:16px 0;
+    font-weight:600; font-size:16px; color:var(--ink);
+    user-select:none;
+  }
+  .guarantee-header:hover{ color:var(--accent); }
+  .guarantee-toggle{
+    display:inline-block; width:20px; height:20px;
+    background:var(--accent); color:var(--paper);
+    border-radius:4px; text-align:center; line-height:20px;
+    font-size:14px; font-weight:bold;
+    transition:transform .2s ease;
+  }
+  .guarantee-toggle.open{ transform:rotate(90deg); }
+  .guarantee-content{
+    max-height:0; overflow:hidden; transition:max-height .3s ease;
+  }
+  .guarantee-content.open{
+    max-height:2000px;
+  }
+  .guarantee-text{
+    font-size:13px; line-height:1.8; color:var(--ink-2);
+    margin:20px 0;
+    padding:20px;
+    background:var(--field-bg);
+    border-radius:6px;
+    border-left:3px solid var(--accent);
+  }
+
   .scale{ display:grid; grid-template-columns:repeat(5, 1fr); gap:8px; }
   .scale label{ position:relative; cursor:pointer; text-align:center; }
   .scale input{ position:absolute; opacity:0; pointer-events:none; }
@@ -684,19 +713,56 @@
     </section>
 
     <!-- MINEX MEDIA GUARANTEE -->
-    <section style="margin:48px 0; padding:40px; background:linear-gradient(135deg, #F2EEE5 0%, #EAE5D9 100%); border-radius:8px; border-left:4px solid var(--accent);">
-      <div style="font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--accent); margin-bottom:12px;">Our Guarantee</div>
-      <h3 style="font-family:'Fraunces', serif; font-size:24px; font-weight:400; margin:0 0 16px 0; color:var(--ink);">The Minex Media Guarantee</h3>
-      <div style="font-size:14px; line-height:1.8; color:var(--ink-2); white-space:pre-wrap; margin-bottom:20px;">
-        <!-- EDIT THE TEXT BELOW WITH YOUR GUARANTEE -->
-        We guarantee exceptional results. If you're not satisfied with our work within the first 30 days, we'll revise your content at no additional cost. Our commitment is to your success — we don't move forward until you're confident in the direction.
-
-        Every project includes full transparency, consistent communication, and a dedicated team focused solely on making your content strategy work.
+    <section style="margin:48px 0; padding:0; background:transparent;">
+      <div style="display:flex; align-items:center; gap:12px; background:linear-gradient(135deg, #F2EEE5 0%, #EAE5D9 100%); padding:24px 40px; border-radius:8px 8px 0 0; border-left:4px solid var(--accent); cursor:pointer;" onclick="document.getElementById('guaranteeContent').classList.toggle('open'); document.getElementById('guaranteeToggle').classList.toggle('open');">
+        <div style="font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--accent);">Contract</div>
+        <span id="guaranteeToggle" class="guarantee-toggle">+</span>
+        <h3 style="font-family:'Fraunces', serif; font-size:20px; font-weight:400; margin:0; color:var(--ink);">The Minex Media Guarantee</h3>
       </div>
-      <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-        <input type="checkbox" name="read_guarantee" required style="width:18px; height:18px; cursor:pointer;">
-        <span style="font-size:14px; color:var(--ink);">I have read and agree to the Minex Media Guarantee</span>
-      </label>
+
+      <div id="guaranteeContent" class="guarantee-content">
+        <div style="padding:40px; background:var(--field-bg); border-left:4px solid var(--accent);">
+          <div style="font-size:13px; line-height:1.8; color:var(--ink-2); margin-bottom:20px;">
+            <strong style="color:var(--ink); display:block; margin-bottom:12px;">MINEX MEDIA 30-DAY RESULTS GUARANTEE</strong>
+
+            <p style="margin:12px 0;">
+              <strong>Our Promise:</strong> We guarantee results within 30 days of project launch. Based on your selected package, we commit to delivering the guaranteed number of qualified leads outlined in your agreement.
+            </p>
+
+            <p style="margin:12px 0;">
+              <strong>Guaranteed Deliverables:</strong>
+            </p>
+            <ul style="margin:8px 0 12px 20px; padding:0;">
+              <li style="margin:6px 0;">Premium Package: 15+ qualified leads within 30 days</li>
+              <li style="margin:6px 0;">Professional Package: 10+ qualified leads within 30 days</li>
+              <li style="margin:6px 0;">Starter Package: 5+ qualified leads within 30 days</li>
+            </ul>
+
+            <p style="margin:12px 0;">
+              <strong>If We Don't Deliver:</strong> If we fall short of the guaranteed lead count by the 30-day mark, we work for free until we meet or exceed the promised results. No hidden fees. No excuses.
+            </p>
+
+            <p style="margin:12px 0;">
+              <strong>What This Covers:</strong> All content creation, ad strategy, posting, monitoring, and optimization. Our full team is committed to your success.
+            </p>
+
+            <p style="margin:12px 0;">
+              <strong>Your Commitment:</strong> Prompt feedback, timely payments, and honest communication so we can iterate quickly and continuously improve results.
+            </p>
+
+            <p style="margin:12px 0; font-size:12px; color:var(--ink-3);">
+              By checking the box below, you acknowledge that you have read and fully understand the Minex Media Guarantee and agree to its terms.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:24px 40px; background:linear-gradient(135deg, #F2EEE5 0%, #EAE5D9 100%); border-radius:0 0 8px 8px; border-left:4px solid var(--accent); border-top:1px solid var(--rule-2);">
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+          <input type="checkbox" name="read_guarantee" required style="width:18px; height:18px; cursor:pointer; accent-color:var(--accent);">
+          <span style="font-size:14px; color:var(--ink);">I have read and fully agree to the Minex Media Guarantee</span>
+        </label>
+      </div>
     </section>
 
     <div class="submit-row">
