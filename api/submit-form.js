@@ -10,81 +10,242 @@ async function generatePDFFromHTML(data) {
     const page = await browser.createPage();
 
     const html = `
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Client Intake — Minex Media</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F2EEE5; color: #13161A; padding: 40px 20px; }
-    .container { max-width: 880px; margin: 0 auto; background: white; padding: 40px; }
-    .header { border-bottom: 1px solid #13161933; padding-bottom: 20px; margin-bottom: 40px; }
-    .header h1 { font-size: 32px; margin-bottom: 10px; }
-    .header p { color: #6E7480; font-size: 14px; }
-    .section { margin-bottom: 40px; }
-    .section h2 { font-size: 18px; color: #1F4D3F; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #1F4D3F; }
-    .field { margin-bottom: 20px; }
-    .field label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em; color: #6E7480; margin-bottom: 8px; }
-    .field-value { font-size: 16px; padding: 10px; background: #FBF8F1; border-radius: 4px; }
+    :root{
+      --paper:#F2EEE5;
+      --paper-2:#EAE5D9;
+      --ink:#13161A;
+      --ink-2:#3A3F46;
+      --ink-3:#6E7480;
+      --rule:#1316191A;
+      --rule-2:#13161933;
+      --accent:#1F4D3F;
+      --accent-ink:#F2EEE5;
+      --warn:#B5462A;
+      --field-bg:#FBF8F1;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      background:var(--paper);
+      color:var(--ink);
+      font-family:"Inter", system-ui, -apple-system, Segoe UI, sans-serif;
+      font-size:16px;
+      line-height:1.55;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+    .wrap{
+      position:relative;
+      z-index:1;
+      max-width:880px;
+      margin:0 auto;
+      padding:48px 28px 96px;
+    }
+    header.top{
+      display:flex; justify-content:space-between; align-items:center;
+      border-bottom:1px solid var(--rule-2);
+      padding-bottom:18px;
+      margin-bottom:56px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-family:"JetBrains Mono", monospace;
+      font-size:12px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--ink);
+    }
+    .brand-mark{
+      width:22px; height:22px;
+      background:var(--ink);
+      color:var(--paper);
+      display:inline-flex; align-items:center; justify-content:center;
+      font-family:"Fraunces", serif;
+      font-weight:500;
+      font-size:14px;
+      line-height:1;
+    }
+    .meta{
+      font-family:"JetBrains Mono", monospace;
+      font-size:11px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--ink-3);
+    }
+    section.field-group{
+      border-top:1px solid var(--rule-2);
+      padding:48px 0 8px;
+      display:grid;
+      grid-template-columns:140px 1fr;
+      gap:40px;
+    }
+    .sect-head .num{
+      font-family:"JetBrains Mono", monospace;
+      font-size:11px;
+      letter-spacing:.18em;
+      color:var(--ink-3);
+      margin-bottom:8px;
+    }
+    .sect-head h2{
+      font-family:"Fraunces", serif;
+      font-weight:400;
+      font-size:22px;
+      line-height:1.15;
+      margin:0;
+      letter-spacing:-0.01em;
+    }
+    .sect-head .sub{
+      margin-top:10px;
+      font-size:13px;
+      color:var(--ink-3);
+      line-height:1.5;
+    }
+    .fields{ display:grid; gap:22px; }
+    .field-value{
+      width:100%;
+      background:var(--field-bg);
+      border:1px solid var(--rule-2);
+      border-radius:6px;
+      padding:13px 14px;
+      font-family:"Inter", sans-serif;
+      font-size:15px;
+      color:var(--ink);
+      line-height:1.4;
+    }
+    label.f{ display:block; }
+    label.f .lab{
+      display:flex; justify-content:space-between; align-items:baseline;
+      font-family:"JetBrains Mono", monospace;
+      font-size:11px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--ink-2);
+      margin-bottom:8px;
+    }
+    footer.bottom{
+      margin-top:72px;
+      padding-top:24px;
+      border-top:1px solid var(--rule-2);
+      display:flex; justify-content:space-between; align-items:center;
+      font-family:"JetBrains Mono", monospace;
+      font-size:10px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--ink-3);
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>Client Intake Form</h1>
-      <p>Submitted: ${new Date().toLocaleString()}</p>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="brand-mark">M</span>
+      Minex Media
     </div>
+    <div class="meta">Client Intake · Submitted</div>
+  </header>
 
-    <div class="section">
-      <h2>01 — About You</h2>
-      <div class="field"><label>Full Name</label><div class="field-value">${data.full_name || ''}</div></div>
-      <div class="field"><label>Business Name</label><div class="field-value">${data.business_name || ''}</div></div>
-      <div class="field"><label>Email</label><div class="field-value">${data.email || ''}</div></div>
-      <div class="field"><label>Phone</label><div class="field-value">${data.phone || ''}</div></div>
-      <div class="field"><label>Website</label><div class="field-value">${data.website || ''}</div></div>
-      <div class="field"><label>Service Area</label><div class="field-value">${data.service_area || ''}</div></div>
-      <div class="field"><label>Social Links</label><div class="field-value">${data.social_links || ''}</div></div>
+  <section class="field-group">
+    <div class="sect-head">
+      <div class="num">01</div>
+      <h2>About You</h2>
+      <div class="sub">Who you are and how to reach you.</div>
     </div>
+    <div class="fields">
+      <label class="f"><span class="lab">Your full name</span><div class="field-value">${data.full_name || ''}</div></label>
+      <label class="f"><span class="lab">Business name</span><div class="field-value">${data.business_name || ''}</div></label>
+      <label class="f"><span class="lab">Email</span><div class="field-value">${data.email || ''}</div></label>
+      <label class="f"><span class="lab">Phone</span><div class="field-value">${data.phone || ''}</div></label>
+      <label class="f"><span class="lab">Website</span><div class="field-value">${data.website || ''}</div></label>
+      <label class="f"><span class="lab">Service area</span><div class="field-value">${data.service_area || ''}</div></label>
+      <label class="f"><span class="lab">Social links</span><div class="field-value">${data.social_links || ''}</div></label>
+    </div>
+  </section>
 
-    <div class="section">
-      <h2>02 — Goals & Vision</h2>
-      <div class="field"><label>Content/Ads Purpose</label><div class="field-value">${data.content_purpose || ''}</div></div>
-      <div class="field"><label>Top 1-3 Goals (30-90 days)</label><div class="field-value">${data.goals_30_90 || ''}</div></div>
-      <div class="field"><label>Success Picture</label><div class="field-value">${data.success_picture || ''}</div></div>
+  <section class="field-group">
+    <div class="sect-head">
+      <div class="num">02</div>
+      <h2>Goals & Vision</h2>
+      <div class="sub">What we're aiming at — and what hitting the bullseye looks like.</div>
     </div>
+    <div class="fields">
+      <label class="f"><span class="lab">What do you want the content / ads to do?</span><div class="field-value">${data.content_purpose || ''}</div></label>
+      <label class="f"><span class="lab">Top 1–3 goals for the next 30–90 days</span><div class="field-value">${data.goals_30_90 || ''}</div></label>
+      <label class="f"><span class="lab">If we crushed this project, what would success look like?</span><div class="field-value">${data.success_picture || ''}</div></label>
+    </div>
+  </section>
 
-    <div class="section">
-      <h2>03 — Your Offer</h2>
-      <div class="field"><label>Main Offers + Price</label><div class="field-value">${data.offers || ''}</div></div>
-      <div class="field"><label>Ideal Customer</label><div class="field-value">${data.ideal_customer || ''}</div></div>
-      <div class="field"><label>Biggest Differentiator</label><div class="field-value">${data.differentiator || ''}</div></div>
+  <section class="field-group">
+    <div class="sect-head">
+      <div class="num">03</div>
+      <h2>Your Offer</h2>
+      <div class="sub">What you sell, who you sell it to, and why you win.</div>
     </div>
+    <div class="fields">
+      <label class="f"><span class="lab">Your main offer(s) + starting price</span><div class="field-value">${data.offers || ''}</div></label>
+      <label class="f"><span class="lab">Ideal customer — who do you want to attract?</span><div class="field-value">${data.ideal_customer || ''}</div></label>
+      <label class="f"><span class="lab">Your biggest differentiator vs competitors</span><div class="field-value">${data.differentiator || ''}</div></label>
+    </div>
+  </section>
 
-    <div class="section">
-      <h2>04 — Brand & Positioning</h2>
-      <div class="field"><label>Brand Words</label><div class="field-value">${data.brand_words || ''}</div></div>
-      <div class="field"><label>Inspiration</label><div class="field-value">${data.inspiration || ''}</div></div>
-      <div class="field"><label>Brand Colors</label><div class="field-value">${data.brand_colors_hex || data.brand_color_1 || ''}</div></div>
-      <div class="field"><label>Visual Style</label><div class="field-value">${data.visual_style || ''}</div></div>
-      <div class="field"><label>Brand Assets Link</label><div class="field-value">${data.brand_assets_link || ''}</div></div>
+  <section class="field-group">
+    <div class="sect-head">
+      <div class="num">04</div>
+      <h2>Brand & Positioning</h2>
+      <div class="sub">The look, feel, and personality we'll build around.</div>
     </div>
+    <div class="fields">
+      <label class="f"><span class="lab">Describe your brand in 3–5 words</span><div class="field-value">${data.brand_words || ''}</div></label>
+      <label class="f"><span class="lab">Brands / pages you love (links) — and why</span><div class="field-value">${data.inspiration || ''}</div></label>
+      <label class="f"><span class="lab">Primary brand color(s)</span><div class="field-value">${data.brand_colors_hex || data.brand_color_1 || ''}</div></label>
+      <label class="f"><span class="lab">Visual style preference</span><div class="field-value">${data.visual_style || ''}</div></label>
+      <label class="f"><span class="lab">Logo & brand assets</span><div class="field-value">${data.brand_assets_link || ''}</div></label>
+    </div>
+  </section>
 
-    <div class="section">
-      <h2>05 — Content & Filming</h2>
-      <div class="field"><label>Script Topics</label><div class="field-value">${data.script_topics || ''}</div></div>
-      <div class="field"><label>Off-Limits</label><div class="field-value">${data.off_limits || ''}</div></div>
-      <div class="field"><label>Content Preferences</label><div class="field-value">${data.content_prefs || ''}</div></div>
-      <div class="field"><label>On-Camera Comfort Level</label><div class="field-value">${data.oncamera_level || ''}</div></div>
-      <div class="field"><label>Filming Availability</label><div class="field-value">${data.filming_availability || ''}</div></div>
+  <section class="field-group">
+    <div class="sect-head">
+      <div class="num">05</div>
+      <h2>Content & Filming</h2>
+      <div class="sub">What to make, how to make it, and what to steer clear of.</div>
     </div>
+    <div class="fields">
+      <label class="f"><span class="lab">Topics you want us to make scripts about</span><div class="field-value">${data.script_topics || ''}</div></label>
+      <label class="f"><span class="lab">Anything that's "off-limits" to film or say?</span><div class="field-value">${data.off_limits || ''}</div></label>
+      <label class="f"><span class="lab">Content style + preferences</span><div class="field-value">${data.content_prefs || ''}</div></label>
+      <label class="f"><span class="lab">On-camera comfort level</span><div class="field-value">${data.oncamera_level || ''}</div></label>
+      <label class="f"><span class="lab">Best filming days / times</span><div class="field-value">${data.filming_availability || ''}</div></label>
+    </div>
+  </section>
 
-    <div class="section">
-      <h2>06 — Working Together</h2>
-      <div class="field"><label>Ad Budget</label><div class="field-value">${data.ad_budget || ''}</div></div>
-      <div class="field"><label>Great Working Relationship</label><div class="field-value">${data.relationship || ''}</div></div>
-      <div class="field"><label>Anything Else</label><div class="field-value">${data.anything_else || ''}</div></div>
+  <section class="field-group">
+    <div class="sect-head">
+      <div class="num">06</div>
+      <h2>Working Together</h2>
+      <div class="sub">Budget, working style, and anything else we should know.</div>
     </div>
-  </div>
+    <div class="fields">
+      <label class="f"><span class="lab">Monthly ad budget range</span><div class="field-value">${data.ad_budget || ''}</div></label>
+      <label class="f"><span class="lab">What does a great working relationship look like to you?</span><div class="field-value">${data.relationship || ''}</div></label>
+      <label class="f"><span class="lab">Anything else we should know?</span><div class="field-value">${data.anything_else || ''}</div></label>
+    </div>
+  </section>
+
+  <footer class="bottom">
+    <span>© Minex Media · Velocity Engineers</span>
+    <span>Submitted ${new Date().toLocaleString()}</span>
+  </footer>
+</div>
 </body>
 </html>
     `;
@@ -113,10 +274,10 @@ export default async function handler(req, res) {
       from: 'onboarding@resend.dev',
       to: 'olivier@minexai.ca',
       subject: `New Client Intake: ${full_name || 'Unknown'} - ${business_name || 'Unknown'}`,
-      html: `<h2>New Client Intake Submission</h2><p>Please see attached PDF for complete form details.</p>`,
+      html: `<h2>New Client Intake Submission</h2><p>See attached PDF for the complete filled form.</p>`,
       attachments: [
         {
-          filename: `intake_${Date.now()}.pdf`,
+          filename: `client-intake_${Date.now()}.pdf`,
           content: pdfBuffer,
         }
       ]
