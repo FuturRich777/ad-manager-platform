@@ -1,6 +1,6 @@
 {
   "name": "ad-manager-platform",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Ad management platform for automating posting, scheduling, and analytics",
   "private": true,
   "workspaces": [
