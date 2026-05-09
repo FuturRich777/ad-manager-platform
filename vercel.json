@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cp minex-intake-form-email.html public/index.html",
+  "buildCommand": "rm -f public/index.html && cp minex-intake-form-email.html public/index.html && echo 'Form deployed with Olivier Bruneau signature'",
   "outputDirectory": "public",
   "installCommand": "npm install",
   "public": true,
