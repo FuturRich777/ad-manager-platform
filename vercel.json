@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cp minex-intake-form-email.html public/index.html",
+  "buildCommand": "cp minex-intake-form-email.html public/index.html && echo 'Build: 2026-05-08 deployment'",
   "outputDirectory": "public",
   "installCommand": "npm install",
   "public": true
