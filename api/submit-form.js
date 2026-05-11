@@ -93,11 +93,14 @@ export default async function handler(req, res) {
     const filledFormHTML = prefillFormHTML(formHTML, req.body);
     const htmlFilename = `${(business_name || 'form').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_intake_${new Date().toISOString().split('T')[0]}.html`;
 
+    // Remove download button and success message from email version since attachment is included
+    const emailFormHTML = filledFormHTML.replace(/<button[^>]*id="downloadBtn"[^>]*>[\s\S]*?<\/button>/g, '');
+
     await resend.emails.send({
       from: 'onboarding@resend.dev',
       to: 'olivier@minexai.ca',
       subject: `New Client Intake: ${full_name || 'Unknown'} - ${business_name || 'Unknown'}`,
-      html: filledFormHTML,
+      html: emailFormHTML,
       attachments: [{
         filename: htmlFilename,
         content: Buffer.from(filledFormHTML),
