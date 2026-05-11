@@ -73,35 +73,6 @@ function prefillFormHTML(formHTML, data) {
   return html;
 }
 
-async function generatePDF(filledFormHTML) {
-  try {
-    const response = await fetch('https://api.pdfshift.io/v3/convert/html', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${Buffer.from(`api:${process.env.PDFSHIFT_API_KEY}`).toString('base64')}`,
-      },
-      body: JSON.stringify({
-        source: filledFormHTML,
-        landscape: false,
-        use_print_media: true,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('PDFShift error:', error);
-      throw new Error(`PDFShift conversion failed: ${response.statusText}`);
-    }
-
-    const buffer = await response.buffer();
-    return buffer;
-  } catch (error) {
-    console.error('PDF generation error:', error);
-    throw error;
-  }
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -120,104 +91,17 @@ export default async function handler(req, res) {
     }
 
     const filledFormHTML = prefillFormHTML(formHTML, req.body);
-    const pdfBuffer = await generatePDF(filledFormHTML);
-
-    // Encode form data as base64 for the download link
-    const dataStr = JSON.stringify(req.body);
-    const encodedData = Buffer.from(dataStr).toString('base64');
-    const downloadLink = `https://awesome-goldberg-cf206d.vercel.app/api/get-form?data=${encodedData}`;
-
-    const businessName = (req.body.business_name || 'form').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    const pdfFilename = `${businessName}_intake_${new Date().toISOString().split('T')[0]}.pdf`;
-
-    const emailHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #13161A; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { border-bottom: 2px solid #1F4D3F; padding-bottom: 20px; margin-bottom: 30px; }
-    .header h1 { margin: 0; font-size: 20px; }
-    .header p { margin: 5px 0 0 0; color: #6E7480; font-size: 13px; }
-    .form-section { margin: 30px 0; }
-    .section-title { font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #1F4D3F; margin: 20px 0 15px 0; }
-    .field { margin-bottom: 12px; }
-    .field-label { font-weight: 600; font-size: 12px; color: #13161A; margin-bottom: 4px; }
-    .field-value { font-size: 14px; color: #3A3F46; }
-    .download-box { background: #F2EEE5; padding: 20px; border-radius: 6px; margin: 30px 0; }
-    .download-link {
-      display: inline-block;
-      background: #1F4D3F;
-      color: #F2EEE5;
-      padding: 12px 24px;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: 500;
-      margin-top: 10px;
-    }
-    .download-link:hover { background: #13161A; }
-    .footer { border-top: 1px solid #E0E0E0; padding-top: 20px; margin-top: 30px; font-size: 12px; color: #6E7480; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>New Client Intake Submission</h1>
-      <p>${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
-    </div>
-
-    <div class="form-section">
-      <div class="section-title">01 — About You</div>
-      ${req.body.full_name ? `<div class="field"><div class="field-label">Full Name</div><div class="field-value">${escapeHtml(req.body.full_name)}</div></div>` : ''}
-      ${req.body.business_name ? `<div class="field"><div class="field-label">Business Name</div><div class="field-value">${escapeHtml(req.body.business_name)}</div></div>` : ''}
-      ${req.body.email ? `<div class="field"><div class="field-label">Email</div><div class="field-value">${escapeHtml(req.body.email)}</div></div>` : ''}
-      ${req.body.phone ? `<div class="field"><div class="field-label">Phone</div><div class="field-value">${escapeHtml(req.body.phone)}</div></div>` : ''}
-      ${req.body.website ? `<div class="field"><div class="field-label">Website</div><div class="field-value">${escapeHtml(req.body.website)}</div></div>` : ''}
-      ${req.body.service_area ? `<div class="field"><div class="field-label">Service Area</div><div class="field-value">${escapeHtml(req.body.service_area)}</div></div>` : ''}
-      ${req.body.social_links ? `<div class="field"><div class="field-label">Social Links</div><div class="field-value">${escapeHtml(req.body.social_links)}</div></div>` : ''}
-    </div>
-
-    <div class="form-section">
-      <div class="section-title">02 — Goals & Vision</div>
-      ${req.body.content_purpose ? `<div class="field"><div class="field-label">Content/Ads Purpose</div><div class="field-value">${escapeHtml(req.body.content_purpose)}</div></div>` : ''}
-      ${req.body.goals_30_90 ? `<div class="field"><div class="field-label">Top 1-3 Goals (30-90 days)</div><div class="field-value">${escapeHtml(req.body.goals_30_90)}</div></div>` : ''}
-      ${req.body.success_picture ? `<div class="field"><div class="field-label">Success Picture</div><div class="field-value">${escapeHtml(req.body.success_picture)}</div></div>` : ''}
-    </div>
-
-    <div class="form-section">
-      <div class="section-title">03 — Your Offer</div>
-      ${req.body.offers ? `<div class="field"><div class="field-label">Main Offers + Price</div><div class="field-value">${escapeHtml(req.body.offers)}</div></div>` : ''}
-      ${req.body.ideal_customer ? `<div class="field"><div class="field-label">Ideal Customer</div><div class="field-value">${escapeHtml(req.body.ideal_customer)}</div></div>` : ''}
-      ${req.body.differentiator ? `<div class="field"><div class="field-label">Biggest Differentiator</div><div class="field-value">${escapeHtml(req.body.differentiator)}</div></div>` : ''}
-    </div>
-
-    <div class="download-box">
-      <strong>✓ Form PDF attached to this email</strong>
-      <p style="margin: 5px 0 0 0; font-size: 12px; color: #6E7480;">The filled form has been generated as a PDF and is attached below. You can also download the interactive HTML version using the link below.</p>
-      <a href="${downloadLink}" class="download-link">Download Form HTML</a>
-      <p style="margin: 10px 0 0 0; font-size: 12px; color: #6E7480;">The HTML version can be opened in any browser or saved for your records.</p>
-    </div>
-
-    <div class="footer">
-      <p>This form submission is from your client intake system.</p>
-    </div>
-  </div>
-</body>
-</html>`;
+    const htmlFilename = `${(business_name || 'form').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_intake_${new Date().toISOString().split('T')[0]}.html`;
 
     await resend.emails.send({
       from: 'onboarding@resend.dev',
       to: 'olivier@minexai.ca',
       subject: `New Client Intake: ${full_name || 'Unknown'} - ${business_name || 'Unknown'}`,
-      html: emailHtml,
-      attachments: [
-        {
-          filename: pdfFilename,
-          content: pdfBuffer,
-        },
-      ],
+      html: filledFormHTML,
+      attachments: [{
+        filename: htmlFilename,
+        content: Buffer.from(filledFormHTML),
+      }],
     });
 
     return res.status(200).json({ success: true, message: 'Form submitted successfully' });
