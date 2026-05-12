@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import puppeteer from 'puppeteer';
 
 const supabaseUrl = 'https://lmgqwgjdzrmufadfxezs.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtZ3F3Z2pkenJtdWZhZGZ4ZXpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTY0NTIsImV4cCI6MjA5Mjg5MjQ1Mn0.blobh-NlDrT4uggvs-sg6pc8GB5KNk_eC2ooT_p03PU';
@@ -57,6 +58,7 @@ input:disabled,textarea:disabled,select:disabled{background:#f0f0f0;cursor:not-a
 @media(max-width:560px){.row{grid-template-columns:1fr;}}
 .checks{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}.checks label{display:inline-block;}.checks .pill{display:inline-block;padding:9px 14px;border:1px solid var(--rule-2);border-radius:999px;background:var(--field-bg);font-size:13px;color:var(--ink-2);}.checks input:checked+.pill{background:var(--ink);color:var(--paper);border-color:var(--ink);}
 .scale{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px;}.scale label{position:relative;cursor:pointer;text-align:center;}.scale input{position:absolute;opacity:0;pointer-events:none;}.scale .opt{display:block;padding:14px 6px 10px;background:var(--field-bg);border:1px solid var(--rule-2);border-radius:6px;font-size:13px;color:var(--ink-2);}.scale .opt .num{font-family:"Fraunces",serif;font-size:20px;color:var(--ink);margin-bottom:4px;}.scale input:checked+.opt{background:var(--ink);color:var(--paper-2);border-color:var(--ink);}.scale input:checked+.opt .num{color:var(--paper);}
+@media print{body{background:white}@page{margin:0}}
 </style>
 </head>
 <body>
@@ -226,9 +228,37 @@ export default async function handler(req, res) {
 
     const html = generateFormHTML(data);
 
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="submission-${data.id}.html"`);
-    res.send(html);
+    // Launch browser and generate PDF
+    let browser;
+    try {
+      browser = await puppeteer.launch({
+        headless: 'new',
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
+
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        margin: { top: 0, right: 0, bottom: 0, left: 0 },
+        printBackground: true,
+      });
+
+      await browser.close();
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="submission-${data.id}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      res.send(pdfBuffer);
+    } catch (puppeteerError) {
+      console.error('[PDF] Puppeteer error:', puppeteerError);
+      if (browser) await browser.close();
+      // Fallback: return HTML instead of PDF
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="submission-${data.id}.html"`);
+      res.send(html);
+    }
   } catch (error) {
     console.error('[DOWNLOAD] Error:', error);
     res.status(500).json({ error: 'Failed to generate form' });
