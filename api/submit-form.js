@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
-import { jsPDF } from 'jspdf';
+import fs from 'fs';
+import path from 'path';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -13,78 +14,64 @@ function escapeHtml(text) {
     .replace(/'/g, '&#039;');
 }
 
-function generatePDFBuffer(data) {
-  try {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 10;
-    const lineHeight = 7;
-    let yPosition = margin + 10;
+function prefillFormHTML(formHTML, data) {
+  let html = formHTML;
 
-    doc.setFontSize(16);
-    doc.text('Client Intake Form', margin, yPosition);
-    yPosition += 15;
+  const fieldMap = {
+    'full_name': data.full_name,
+    'business_name': data.business_name,
+    'email': data.email,
+    'phone': data.phone,
+    'website': data.website,
+    'service_area': data.service_area,
+    'social_links': data.social_links,
+    'content_purpose': data.content_purpose,
+    'goals_30_90': data.goals_30_90,
+    'success_picture': data.success_picture,
+    'offers': data.offers,
+    'ideal_customer': data.ideal_customer,
+    'differentiator': data.differentiator,
+    'brand_words': data.brand_words,
+    'inspiration': data.inspiration,
+    'brand_colors_hex': data.brand_colors_hex,
+    'brand_color_1': data.brand_color_1,
+    'visual_style': data.visual_style,
+    'brand_assets_link': data.brand_assets_link,
+    'script_topics': data.script_topics,
+    'off_limits': data.off_limits,
+    'content_prefs': data.content_prefs,
+    'oncamera_level': data.oncamera_level,
+    'filming_availability': data.filming_availability,
+    'ad_budget': data.ad_budget,
+    'relationship': data.relationship,
+    'anything_else': data.anything_else,
+    'signature': data.signature,
+    'representative_signature': data.representative_signature,
+    'platform_logins': data.platform_logins,
+  };
 
-    doc.setFontSize(10);
-
-    const fields = [
-      ['Full Name', data.full_name],
-      ['Business Name', data.business_name],
-      ['Email', data.email],
-      ['Phone', data.phone],
-      ['Website', data.website],
-      ['Service Area', data.service_area],
-      ['Social Links', data.social_links],
-      ['Content Purpose', data.content_purpose],
-      ['30-90 Day Goals', data.goals_30_90],
-      ['Success Picture', data.success_picture],
-      ['Main Offers', data.offers],
-      ['Ideal Customer', data.ideal_customer],
-      ['Differentiator', data.differentiator],
-      ['Brand Words', data.brand_words],
-      ['Inspiration', data.inspiration],
-      ['Brand Colors', data.brand_colors_hex],
-      ['Visual Style', data.visual_style],
-      ['Brand Assets', data.brand_assets_link],
-      ['Script Topics', data.script_topics],
-      ['Off Limits', data.off_limits],
-      ['Content Prefs', data.content_prefs],
-      ['On Camera Level', data.oncamera_level],
-      ['Filming Availability', data.filming_availability],
-      ['Ad Budget', data.ad_budget],
-      ['Relationship', data.relationship],
-      ['Anything Else', data.anything_else],
-    ];
-
-    for (const [label, value] of fields) {
-      if (value) {
-        doc.setFont(undefined, 'bold');
-        doc.text(`${label}:`, margin, yPosition);
-        yPosition += lineHeight;
-
-        doc.setFont(undefined, 'normal');
-        const text = String(value);
-        const splitText = doc.splitTextToSize(text, pageWidth - 2 * margin);
-        doc.text(splitText, margin, yPosition);
-        yPosition += splitText.length * lineHeight + 2;
-
-        if (yPosition > doc.internal.pageSize.getHeight() - margin) {
-          doc.addPage();
-          yPosition = margin;
-        }
-      }
+  for (const [fieldName, value] of Object.entries(fieldMap)) {
+    if (value) {
+      const escaped = escapeHtml(value);
+      html = html.replace(
+        new RegExp(`name="${fieldName}"([^>]*)>`, 'g'),
+        `name="${fieldName}"$1 value="${escaped}">`
+      );
+      html = html.replace(
+        new RegExp(`<textarea name="${fieldName}"([^>]*)>([^<]*)`, 'g'),
+        `<textarea name="${fieldName}"$1>${escaped}`
+      );
     }
-
-    const pdfOutput = doc.output();
-    const buffer = Buffer.from(pdfOutput, 'binary');
-    console.log('PDF generated:', buffer.length, 'bytes, type:', typeof pdfOutput);
-    return buffer;
-  } catch (err) {
-    console.error('PDF generation failed:', err);
-    throw new Error(`PDF generation error: ${err.message}`);
   }
-}
 
+  html = html.replace(/<form/g, '<form onsubmit="return false"');
+  html = html.replace(/<input/g, '<input disabled');
+  html = html.replace(/<textarea/g, '<textarea disabled');
+  html = html.replace(/<select/g, '<select disabled');
+  html = html.replace(/<button/g, '<button disabled');
+
+  return html;
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -94,17 +81,26 @@ export default async function handler(req, res) {
   const { full_name, business_name } = req.body;
 
   try {
-    const pdfBuffer = generatePDFBuffer(req.body);
-    const filename = `${(business_name || 'form').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_intake_${new Date().toISOString().split('T')[0]}.pdf`;
+    const formPath = path.join(process.cwd(), 'public', 'index.html');
+    let formHTML;
+
+    try {
+      formHTML = fs.readFileSync(formPath, 'utf-8');
+    } catch {
+      formHTML = fs.readFileSync(path.join(process.cwd(), 'minex-intake-form-email.html'), 'utf-8');
+    }
+
+    const filledFormHTML = prefillFormHTML(formHTML, req.body);
+    const filename = `${(business_name || 'form').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_intake_${new Date().toISOString().split('T')[0]}.html`;
 
     await resend.emails.send({
       from: 'onboarding@resend.dev',
       to: 'olivier@minexai.ca',
       subject: `New Client Intake: ${full_name || 'Unknown'} - ${business_name || 'Unknown'}`,
-      html: `<h2>New Client Intake Submission</h2><p>A PDF of the completed form is attached below.</p>`,
+      html: `<h2>New Client Intake Submission</h2><p>Your filled form is attached below. Download it and open in your browser.</p>`,
       attachments: [{
         filename: filename,
-        content: pdfBuffer.toString('base64'),
+        content: Buffer.from(filledFormHTML).toString('base64'),
       }],
     });
 
