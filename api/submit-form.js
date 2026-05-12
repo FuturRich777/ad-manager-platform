@@ -75,9 +75,9 @@ function generatePDFBuffer(data) {
       }
     }
 
-    const pdfData = doc.output('arraybuffer');
-    const buffer = Buffer.from(pdfData);
-    console.log('PDF generated:', buffer.length, 'bytes');
+    const pdfOutput = doc.output();
+    const buffer = Buffer.from(pdfOutput, 'binary');
+    console.log('PDF generated:', buffer.length, 'bytes, type:', typeof pdfOutput);
     return buffer;
   } catch (err) {
     console.error('PDF generation failed:', err);
