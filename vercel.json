@@ -1,4 +1,5 @@
 {
   "buildCommand": "bash build.sh && npm install",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "public": "public"
 }
