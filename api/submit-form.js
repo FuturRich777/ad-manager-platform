@@ -1,7 +1,3 @@
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 function generateTextFile(data) {
   let text = 'CLIENT INTAKE FORM SUBMISSION\n';
   text += '='.repeat(50) + '\n\n';
@@ -41,7 +37,7 @@ function generateTextFile(data) {
     }
   }
 
-  return Buffer.from(text, 'utf-8');
+  return text;
 }
 
 export default async function handler(req, res) {
@@ -49,36 +45,19 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { full_name, business_name } = req.body;
+  const { business_name } = req.body;
 
   try {
-    console.log('[SUBMIT] Processing form for:', business_name);
-    console.log('[SUBMIT] RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
-
-    const textBuffer = generateTextFile(req.body);
+    const textContent = generateTextFile(req.body);
     const filename = `${(business_name || 'form').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_intake_${new Date().toISOString().split('T')[0]}.txt`;
 
-    console.log('[SUBMIT] Sending email with attachment:', filename);
-    console.log('[SUBMIT] Attachment size:', textBuffer.length, 'bytes');
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', Buffer.byteLength(textContent));
 
-    const emailResponse = await resend.emails.send({
-      from: 'onboarding@resend.dev',
-      to: 'olivier@minexai.ca',
-      subject: `New Client Intake: ${full_name || 'Unknown'} - ${business_name || 'Unknown'}`,
-      html: `<h2>New Client Intake Submission</h2><p>Your form data is attached as a text file.</p>`,
-      attachments: [{
-        filename: filename,
-        content: textBuffer.toString('base64'),
-      }],
-    });
-
-    console.log('[SUBMIT] Email response:', emailResponse);
-
-    return res.status(200).json({ success: true, message: 'Form submitted successfully' });
+    return res.status(200).send(textContent);
   } catch (error) {
     console.error('[SUBMIT] ERROR:', error);
-    console.error('[SUBMIT] Error message:', error.message);
-    console.error('[SUBMIT] Error stack:', error.stack);
     return res.status(500).json({ error: error.message || 'Failed to submit form' });
   }
 }
