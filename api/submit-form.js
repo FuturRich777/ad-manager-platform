@@ -6,7 +6,9 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
+  const method = req.method ? req.method.toUpperCase() : 'GET';
+
+  if (method === 'POST') {
     try {
       const { error, data } = await supabase
         .from('submissions')
@@ -25,7 +27,7 @@ export default async function handler(req, res) {
     }
   }
 
-  if (req.method === 'GET') {
+  if (method === 'GET') {
     try {
       const { data, error } = await supabase
         .from('submissions')
