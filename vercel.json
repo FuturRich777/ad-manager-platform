@@ -5,19 +5,8 @@
   "routes": [
     {
       "src": "/submissions",
-      "dest": "/submissions.html"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1.js"
-    },
-    {
-      "src": "/(.*)\\.html",
-      "dest": "/$1.html"
-    },
-    {
-      "src": "/(?!api)(.*)(\\..*)?$",
-      "dest": "/$1"
+      "dest": "/api/submissions.js",
+      "methods": ["GET"]
     }
   ]
 }
