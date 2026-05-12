@@ -851,7 +851,7 @@
   const form = document.getElementById('intakeForm');
   const success = document.getElementById('successMsg');
   const downloadBtn = document.getElementById('downloadBtn');
-  let formData = null;
+  let submissionId = null;
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -861,7 +861,7 @@
 
     try {
       const fd = new FormData(form);
-      formData = Object.fromEntries(fd);
+      const formData = Object.fromEntries(fd);
 
       const response = await fetch('/api/submit-form', {
         method: 'POST',
@@ -870,6 +870,9 @@
       });
 
       if (response.ok) {
+        const result = await response.json();
+        submissionId = result.data?.[0]?.id || result.data?.id;
+
         form.style.display = 'none';
         success.classList.add('active');
         downloadBtn.style.display = 'block';
@@ -888,24 +891,20 @@
 
   downloadBtn.addEventListener('click', async (e) => {
     e.preventDefault();
-    if (!formData) return;
+    if (!submissionId) return;
 
     downloadBtn.disabled = true;
     downloadBtn.innerHTML = 'Downloading… <span class="arrow">→</span>';
 
     try {
-      const response = await fetch('/api/download-form', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(`/api/download-form?id=${submissionId}`);
 
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `intake_form_${new Date().toISOString().split('T')[0]}.html`;
+        a.download = `submission-${submissionId}.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
