@@ -181,22 +181,32 @@ export default async function handler(req, res) {
             .single();
 
           if (submissionData) {
-            const pdfBuffer = generatePDF(submissionData);
-            const pdfBase64 = Buffer.from(pdfBuffer).toString('base64');
+            // Generate the HTML form
+            const formHtml = await (async () => {
+              try {
+                const response = await fetch(`https://onboarding.minexmedia.ca/api/download-form?id=${submissionId}`);
+                if (response.ok) return await response.text();
+                return null;
+              } catch {
+                return null;
+              }
+            })();
+
+            const attachments = formHtml ? [
+              {
+                filename: `submission-${submissionId}.html`,
+                content: Buffer.from(formHtml).toString('base64'),
+              },
+            ] : [];
 
             await resend.emails.send({
               from: 'noreply@minexmedia.ca',
               to: 'olivier@minexai.ca',
               subject: `New Onboarding Submission #${submissionId} - ${clientData.full_name || 'Client'}`,
               html: emailHtml,
-              attachments: [
-                {
-                  filename: `submission-${submissionId}.pdf`,
-                  content: pdfBase64,
-                },
-              ],
+              attachments,
             });
-            console.log('[EMAIL] Sent to olivier@minexai.ca with PDF attachment');
+            console.log('[EMAIL] Sent to olivier@minexai.ca with form attachment');
           }
         } catch (emailError) {
           console.error('[EMAIL] Error:', emailError);
