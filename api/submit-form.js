@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 import fs from 'fs';
 import path from 'path';
-import PDFDocument from 'pdfkit';
+import { generatePdf } from 'html-pdf-node';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -74,56 +74,51 @@ function prefillFormHTML(formHTML, data) {
   return html;
 }
 
-function generatePDF(data) {
-  return new Promise((resolve, reject) => {
-    const doc = new PDFDocument();
-    const chunks = [];
+async function generatePDF(data) {
+  let html = '<h1>Client Intake Form</h1>';
 
-    doc.on('data', chunk => chunks.push(chunk));
-    doc.on('end', () => resolve(Buffer.concat(chunks)));
-    doc.on('error', reject);
+  const fields = [
+    ['Full Name', data.full_name],
+    ['Business Name', data.business_name],
+    ['Email', data.email],
+    ['Phone', data.phone],
+    ['Website', data.website],
+    ['Service Area', data.service_area],
+    ['Social Links', data.social_links],
+    ['Content Purpose', data.content_purpose],
+    ['30-90 Day Goals', data.goals_30_90],
+    ['Success Picture', data.success_picture],
+    ['Main Offers', data.offers],
+    ['Ideal Customer', data.ideal_customer],
+    ['Differentiator', data.differentiator],
+    ['Brand Words', data.brand_words],
+    ['Inspiration', data.inspiration],
+    ['Brand Colors', data.brand_colors_hex],
+    ['Visual Style', data.visual_style],
+    ['Brand Assets', data.brand_assets_link],
+    ['Script Topics', data.script_topics],
+    ['Off Limits', data.off_limits],
+    ['Content Prefs', data.content_prefs],
+    ['On Camera Level', data.oncamera_level],
+    ['Filming Availability', data.filming_availability],
+    ['Ad Budget', data.ad_budget],
+    ['Relationship', data.relationship],
+    ['Anything Else', data.anything_else],
+  ];
 
-    doc.fontSize(18).text('Client Intake Form', { underline: true }).moveDown();
-    doc.fontSize(10);
-
-    const fields = [
-      ['Full Name', data.full_name],
-      ['Business Name', data.business_name],
-      ['Email', data.email],
-      ['Phone', data.phone],
-      ['Website', data.website],
-      ['Service Area', data.service_area],
-      ['Social Links', data.social_links],
-      ['Content Purpose', data.content_purpose],
-      ['30-90 Day Goals', data.goals_30_90],
-      ['Success Picture', data.success_picture],
-      ['Main Offers', data.offers],
-      ['Ideal Customer', data.ideal_customer],
-      ['Differentiator', data.differentiator],
-      ['Brand Words', data.brand_words],
-      ['Inspiration', data.inspiration],
-      ['Brand Colors', data.brand_colors_hex],
-      ['Visual Style', data.visual_style],
-      ['Brand Assets', data.brand_assets_link],
-      ['Script Topics', data.script_topics],
-      ['Off Limits', data.off_limits],
-      ['Content Prefs', data.content_prefs],
-      ['On Camera Level', data.oncamera_level],
-      ['Filming Availability', data.filming_availability],
-      ['Ad Budget', data.ad_budget],
-      ['Relationship', data.relationship],
-      ['Anything Else', data.anything_else],
-    ];
-
-    fields.forEach(([label, value]) => {
-      if (value) {
-        doc.font('Helvetica-Bold').text(`${label}:`, { underline: true });
-        doc.font('Helvetica').text(String(value), { width: 500 }).moveDown(0.5);
-      }
-    });
-
-    doc.end();
+  fields.forEach(([label, value]) => {
+    if (value) {
+      html += `<p><strong>${label}:</strong> ${escapeHtml(String(value))}</p>`;
+    }
   });
+
+  try {
+    const pdfBuffer = await generatePdf({ content: html });
+    return pdfBuffer;
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    throw error;
+  }
 }
 
 export default async function handler(req, res) {
