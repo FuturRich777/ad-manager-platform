@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: minex-form-dashboard
+    env: node
+    plan: free
+    buildCommand: cd dashboard-app && npm install
+    startCommand: cd dashboard-app && npm start
+    envVars:
+      - key: PORT
+        value: 3000
