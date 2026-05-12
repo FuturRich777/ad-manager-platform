@@ -209,6 +209,12 @@ input:disabled,textarea:disabled,select:disabled{background:#f0f0f0;cursor:not-a
 }
 
 export default async function handler(req, res) {
+  const method = req.method ? req.method.toUpperCase() : 'GET';
+
+  if (method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   const { id } = req.query;
 
   if (!id) {
@@ -228,7 +234,7 @@ export default async function handler(req, res) {
 
     const html = generateFormHTML(data);
 
-    // Launch browser and generate PDF
+    // Try to generate PDF with Puppeteer
     let browser;
     try {
       browser = await puppeteer.launch({
@@ -245,22 +251,29 @@ export default async function handler(req, res) {
         printBackground: true,
       });
 
-      await browser.close();
+      if (browser) await browser.close();
 
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="submission-${data.id}.pdf"`);
       res.setHeader('Content-Length', pdfBuffer.length);
-      res.send(pdfBuffer);
+      return res.send(pdfBuffer);
     } catch (puppeteerError) {
       console.error('[PDF] Puppeteer error:', puppeteerError);
-      if (browser) await browser.close();
+      if (browser) {
+        try {
+          await browser.close();
+        } catch (e) {
+          console.error('[PDF] Error closing browser:', e);
+        }
+      }
       // Fallback: return HTML instead of PDF
+      console.log('[PDF] Falling back to HTML format');
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="submission-${data.id}.html"`);
-      res.send(html);
+      return res.send(html);
     }
   } catch (error) {
     console.error('[DOWNLOAD] Error:', error);
-    res.status(500).json({ error: 'Failed to generate form' });
+    return res.status(500).json({ error: 'Failed to generate form' });
   }
 }
