@@ -1,4 +1,9 @@
 {
   "buildCommand": "bash build.sh",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
 }
