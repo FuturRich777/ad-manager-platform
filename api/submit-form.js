@@ -17,93 +17,131 @@ function generatePDF(data) {
 
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
-  const margin = 15;
+  const margin = 14;
   const contentWidth = pageWidth - 2 * margin;
   let yPos = margin;
-  const lineHeight = 6;
 
-  pdf.setFillColor(31, 77, 63);
-  pdf.rect(0, 0, pageWidth, 28, 'F');
-  pdf.setTextColor(242, 238, 229);
-  pdf.setFontSize(18);
-  pdf.text(`Submission #${data.id}`, margin, 12);
+  // Color scheme from form
+  const colors = {
+    darkGreen: [31, 77, 63],
+    cream: [242, 238, 229],
+    darkText: [19, 22, 26],
+    mediumText: [58, 63, 70],
+    lightText: [110, 116, 128],
+    lightBg: [251, 248, 241],
+    border: [211, 211, 211],
+  };
+
+  // Header banner
+  pdf.setFillColor(...colors.darkGreen);
+  pdf.rect(0, 0, pageWidth, 24, 'F');
+  pdf.setTextColor(...colors.cream);
+  pdf.setFontSize(20);
+  pdf.setFont(undefined, 'bold');
+  pdf.text('MINEX MEDIA Onboarding', margin, 10);
   pdf.setFontSize(9);
-  pdf.text(`Submitted on ${new Date(data.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, margin, 22);
+  pdf.setFont(undefined, 'normal');
+  pdf.text(`Submission #${data.id}`, margin, 16);
+  pdf.text(`${new Date(data.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, margin, 20);
 
-  yPos = 35;
+  yPos = 32;
 
-  const addSection = (title, fields) => {
-    if (yPos > pageHeight - 25) {
+  const addFormField = (label, value, width = contentWidth) => {
+    const boxHeight = 6;
+    const labelHeight = 3;
+    const spacing = 2;
+
+    // Check page break
+    if (yPos + labelHeight + boxHeight + spacing > pageHeight - 6) {
       pdf.addPage();
       yPos = margin;
     }
-    pdf.setTextColor(19, 22, 26);
-    pdf.setFontSize(12);
-    pdf.setFont(undefined, 'bold');
-    pdf.text(title, margin, yPos);
-    yPos += 8;
-    pdf.setFont(undefined, 'normal');
 
-    fields.forEach(({ label, value }) => {
-      if (yPos > pageHeight - 12) {
-        pdf.addPage();
-        yPos = margin;
-      }
-      pdf.setTextColor(58, 63, 70);
-      pdf.setFontSize(8);
-      pdf.setFont(undefined, 'bold');
-      pdf.text(label + ':', margin, yPos);
-      yPos += 4;
-      pdf.setTextColor(110, 116, 128);
-      pdf.setFont(undefined, 'normal');
-      const displayValue = value || '(not provided)';
-      const wrappedText = pdf.splitTextToSize(String(displayValue), contentWidth - 5);
-      pdf.text(wrappedText, margin + 2, yPos);
-      yPos += wrappedText.length * lineHeight + 2;
-    });
-    yPos += 3;
+    // Label
+    pdf.setFontSize(7);
+    pdf.setFont(undefined, 'bold');
+    pdf.setTextColor(...colors.mediumText);
+    pdf.text(label, margin + 1, yPos + 2);
+    yPos += labelHeight + 1;
+
+    // Input box
+    pdf.setDrawColor(...colors.border);
+    pdf.setLineWidth(0.3);
+    pdf.rect(margin, yPos, width, boxHeight);
+
+    // Field value
+    pdf.setFontSize(9);
+    pdf.setFont(undefined, 'normal');
+    pdf.setTextColor(...colors.darkText);
+    const displayValue = value ? String(value) : '';
+    const wrappedText = pdf.splitTextToSize(displayValue, width - 2);
+    pdf.text(wrappedText.slice(0, 1), margin + 1, yPos + 4);
+
+    yPos += boxHeight + spacing;
   };
 
-  addSection('About You', [
-    { label: 'Full Name', value: data.full_name },
-    { label: 'Business Name', value: data.business_name },
-    { label: 'Email', value: data.email },
-    { label: 'Phone', value: data.phone },
-    { label: 'Website', value: data.website },
-    { label: 'Service Area', value: data.service_area },
-  ]);
+  const addSection = (title) => {
+    if (yPos > pageHeight - 20) {
+      pdf.addPage();
+      yPos = margin;
+    }
+    // Section divider
+    pdf.setDrawColor(...colors.border);
+    pdf.setLineWidth(0.2);
+    pdf.line(margin, yPos - 1, pageWidth - margin, yPos - 1);
 
-  addSection('Goals & Vision', [
-    { label: 'Content Purpose', value: data.content_purpose },
-    { label: 'Goals (30-90 days)', value: data.goals_30_90 },
-    { label: 'Success Picture', value: data.success_picture },
-  ]);
+    // Section title
+    pdf.setFontSize(11);
+    pdf.setFont(undefined, 'bold');
+    pdf.setTextColor(...colors.darkGreen);
+    pdf.text(title, margin, yPos + 3);
+    yPos += 6;
+  };
 
-  addSection('Your Offer', [
-    { label: 'Main Offers', value: data.offers },
-    { label: 'Ideal Customer', value: data.ideal_customer },
-    { label: 'Differentiator', value: data.differentiator },
-  ]);
+  // About You
+  addSection('About You');
+  addFormField('Your full name', data.full_name, contentWidth / 2 - 1);
+  addFormField('Business name', data.business_name, contentWidth / 2 - 1);
+  addFormField('Email', data.email, contentWidth / 2 - 1);
+  addFormField('Phone', data.phone, contentWidth / 2 - 1);
+  addFormField('Website', data.website, contentWidth / 2 - 1);
+  addFormField('Service area', data.service_area, contentWidth / 2 - 1);
+  addFormField('Social links', data.social_links || '');
 
-  addSection('Brand & Positioning', [
-    { label: 'Brand Words', value: data.brand_words },
-    { label: 'Brand Colors', value: data.brand_colors_hex },
-    { label: 'Visual Style', value: Array.isArray(data.visual_style) ? data.visual_style.join(', ') : data.visual_style },
-  ]);
+  // Goals & Vision
+  addSection('Goals & Vision');
+  addFormField('What do you want the content / ads to do?', data.content_purpose);
+  addFormField('Top 1–3 goals for the next 30–90 days', data.goals_30_90);
+  addFormField('If we crushed this project, what would success look like?', data.success_picture);
 
-  addSection('Content & Filming', [
-    { label: 'Script Topics', value: data.script_topics },
-    { label: 'Off Limits', value: data.off_limits },
-    { label: 'Content Prefs', value: data.content_prefs },
-    { label: 'On-Camera Level', value: ['Hide me', 'Reluctant', 'Open', 'Comfortable', 'Natural'][data.oncamera_level - 1] },
-    { label: 'Filming Availability', value: data.filming_availability },
-  ]);
+  // Your Offer
+  addSection('Your Offer');
+  addFormField('Your main offer(s) + starting price', data.offers);
+  addFormField('Ideal customer — who do you want to attract?', data.ideal_customer);
+  addFormField('Your biggest differentiator vs competitors', data.differentiator);
 
-  addSection('Working Together', [
-    { label: 'Ad Budget', value: data.ad_budget },
-    { label: 'Working Relationship', value: data.relationship },
-    { label: 'Anything Else', value: data.anything_else },
-  ]);
+  // Brand & Positioning
+  addSection('Brand & Positioning');
+  addFormField('Describe your brand in 3–5 words', data.brand_words);
+  addFormField('Brands / pages you love (links) — and why', data.inspiration);
+  addFormField('Primary brand color(s)', data.brand_colors_hex);
+  addFormField('Visual style preference', Array.isArray(data.visual_style) ? data.visual_style.join(', ') : (data.visual_style || ''));
+  addFormField('Logo & brand assets', data.brand_assets_link);
+
+  // Content & Filming
+  addSection('Content & Filming');
+  addFormField('Topics you want us to make scripts about', data.script_topics);
+  addFormField('Anything that\'s "off-limits" to film or say?', data.off_limits);
+  addFormField('Content style + preferences', data.content_prefs);
+  const cameraLabels = ['', 'Hide me', 'Reluctant', 'Open', 'Comfortable', 'Natural'];
+  addFormField('On-camera comfort level', cameraLabels[data.oncamera_level] || '');
+  addFormField('Best filming days / times', data.filming_availability);
+
+  // Working Together
+  addSection('Working Together');
+  addFormField('Monthly ad budget range', data.ad_budget);
+  addFormField('What does a great working relationship look like to you?', data.relationship);
+  addFormField('Anything else we should know?', data.anything_else);
 
   return pdf.output('arraybuffer');
 }
@@ -181,32 +219,36 @@ export default async function handler(req, res) {
             .single();
 
           if (submissionData) {
-            // Generate the HTML form
-            const formHtml = await (async () => {
-              try {
-                const response = await fetch(`https://onboarding.minexmedia.ca/api/download-form?id=${submissionId}`);
-                if (response.ok) return await response.text();
-                return null;
-              } catch {
-                return null;
-              }
-            })();
+            // Generate PDF directly
+            try {
+              const pdfBuffer = generatePDF(submissionData);
+              const pdfBase64 = Buffer.from(pdfBuffer).toString('base64');
 
-            const attachments = formHtml ? [
-              {
-                filename: `submission-${submissionId}.html`,
-                content: Buffer.from(formHtml).toString('base64'),
-              },
-            ] : [];
-
-            await resend.emails.send({
-              from: 'noreply@minexmedia.ca',
-              to: 'olivier@minexai.ca',
-              subject: `New Onboarding Submission #${submissionId} - ${clientData.full_name || 'Client'}`,
-              html: emailHtml,
-              attachments,
-            });
-            console.log('[EMAIL] Sent to olivier@minexai.ca with form attachment');
+              await resend.emails.send({
+                from: 'noreply@minexmedia.ca',
+                to: 'olivier@minexai.ca',
+                subject: `New Onboarding Submission #${submissionId} - ${clientData.full_name || 'Client'}`,
+                html: emailHtml,
+                attachments: [
+                  {
+                    filename: `onboarding-submission-${submissionId}.pdf`,
+                    content: pdfBase64,
+                    encoding: 'base64',
+                  },
+                ],
+              });
+              console.log('[EMAIL] Sent to olivier@minexai.ca with PDF attachment');
+            } catch (pdfError) {
+              console.error('[PDF] Error generating PDF:', pdfError);
+              // Send without attachment if PDF fails
+              await resend.emails.send({
+                from: 'noreply@minexmedia.ca',
+                to: 'olivier@minexai.ca',
+                subject: `New Onboarding Submission #${submissionId} - ${clientData.full_name || 'Client'}`,
+                html: emailHtml,
+              });
+              console.log('[EMAIL] Sent to olivier@minexai.ca (PDF generation failed)');
+            }
           }
         } catch (emailError) {
           console.error('[EMAIL] Error:', emailError);
