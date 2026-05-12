@@ -52,10 +52,16 @@ export default async function handler(req, res) {
   const { full_name, business_name } = req.body;
 
   try {
+    console.log('[SUBMIT] Processing form for:', business_name);
+    console.log('[SUBMIT] RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
+
     const textBuffer = generateTextFile(req.body);
     const filename = `${(business_name || 'form').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_intake_${new Date().toISOString().split('T')[0]}.txt`;
 
-    await resend.emails.send({
+    console.log('[SUBMIT] Sending email with attachment:', filename);
+    console.log('[SUBMIT] Attachment size:', textBuffer.length, 'bytes');
+
+    const emailResponse = await resend.emails.send({
       from: 'onboarding@resend.dev',
       to: 'olivier@minexai.ca',
       subject: `New Client Intake: ${full_name || 'Unknown'} - ${business_name || 'Unknown'}`,
@@ -66,9 +72,13 @@ export default async function handler(req, res) {
       }],
     });
 
+    console.log('[SUBMIT] Email response:', emailResponse);
+
     return res.status(200).json({ success: true, message: 'Form submitted successfully' });
   } catch (error) {
-    console.error('Error:', error);
+    console.error('[SUBMIT] ERROR:', error);
+    console.error('[SUBMIT] Error message:', error.message);
+    console.error('[SUBMIT] Error stack:', error.stack);
     return res.status(500).json({ error: error.message || 'Failed to submit form' });
   }
 }
