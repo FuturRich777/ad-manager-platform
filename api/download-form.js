@@ -209,12 +209,6 @@ input:disabled,textarea:disabled,select:disabled{background:#f0f0f0;cursor:not-a
 }
 
 export default async function handler(req, res) {
-  const method = req.method ? req.method.toUpperCase() : 'GET';
-
-  if (method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
   const { id } = req.query;
 
   if (!id) {
