@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+# Force Vercel rebuild
 echo "Building MINEX MEDIA Onboarding Form..."
 
 # Get the directory where this script is located
