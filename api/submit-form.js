@@ -1,83 +1,48 @@
-import { createClient } from '@supabase/supabase-js';
+import fs from 'fs';
+import path from 'path';
 
-const supabaseUrl = process.env.SUPABASE_URL || 'https://lmgqwgjdzrmufadfxezs.supabase.co';
-const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtZ3F3Z2pkenJtdWZhZGZ4ZXpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTY0NTIsImV4cCI6MjA5Mjg5MjQ1Mn0.blobh-NlDrT4uggvs-sg6pc8GB5KNk_eC2ooT_p03PU';
+const dataDir = '/tmp/minex-submissions';
 
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-function generateTextFile(data) {
-  let text = 'CLIENT INTAKE FORM SUBMISSION\n';
-  text += '='.repeat(50) + '\n\n';
-
-  const fields = [
-    ['Full Name', data.full_name],
-    ['Business Name', data.business_name],
-    ['Email', data.email],
-    ['Phone', data.phone],
-    ['Website', data.website],
-    ['Service Area', data.service_area],
-    ['Social Links', data.social_links],
-    ['Content Purpose', data.content_purpose],
-    ['30-90 Day Goals', data.goals_30_90],
-    ['Success Picture', data.success_picture],
-    ['Main Offers', data.offers],
-    ['Ideal Customer', data.ideal_customer],
-    ['Differentiator', data.differentiator],
-    ['Brand Words', data.brand_words],
-    ['Inspiration', data.inspiration],
-    ['Brand Colors', data.brand_colors_hex],
-    ['Visual Style', data.visual_style],
-    ['Brand Assets', data.brand_assets_link],
-    ['Script Topics', data.script_topics],
-    ['Off Limits', data.off_limits],
-    ['Content Prefs', data.content_prefs],
-    ['On Camera Level', data.oncamera_level],
-    ['Filming Availability', data.filming_availability],
-    ['Ad Budget', data.ad_budget],
-    ['Relationship', data.relationship],
-    ['Anything Else', data.anything_else],
-  ];
-
-  for (const [label, value] of fields) {
-    if (value) {
-      text += `${label}:\n${value}\n\n`;
-    }
-  }
-
-  return text;
+// Ensure data directory exists
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method === 'POST') {
+    try {
+      const data = {
+        ...req.body,
+        id: Date.now(),
+        created_at: new Date().toISOString(),
+      };
 
-  const { business_name, email, full_name } = req.body;
+      const filePath = path.join(dataDir, `${data.id}.json`);
+      fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 
-  try {
-    // Try to save to Supabase
-    const { error: insertError, data } = await supabase
-      .from('submissions')
-      .insert([{ ...req.body }]);
+      console.log('[SUBMIT] Saved submission:', data.id);
 
-    if (insertError) {
-      console.warn('[SUBMIT] Supabase insert warning (RLS policy may be blocking):', insertError);
-      // Continue anyway - still return success so form submission completes
-    } else {
-      console.log('[SUBMIT] Successfully saved to Supabase');
+      return res.status(200).json({ success: true, id: data.id });
+    } catch (error) {
+      console.error('[SUBMIT] Error:', error);
+      return res.status(500).json({ error: 'Failed to save submission' });
     }
-
-    // Generate and return success response
-    const textContent = generateTextFile(req.body);
-    const filename = `${(business_name || 'form').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_intake_${new Date().toISOString().split('T')[0]}.txt`;
-
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Content-Length', Buffer.byteLength(textContent));
-
-    return res.status(200).send(textContent);
-  } catch (error) {
-    console.error('[SUBMIT] ERROR:', error);
-    return res.status(500).json({ error: error.message || 'Failed to submit form' });
   }
+
+  if (req.method === 'GET') {
+    try {
+      const files = fs.readdirSync(dataDir);
+      const submissions = files
+        .filter(f => f.endsWith('.json'))
+        .map(f => JSON.parse(fs.readFileSync(path.join(dataDir, f), 'utf8')))
+        .sort((a, b) => b.id - a.id);
+
+      return res.status(200).json(submissions);
+    } catch (error) {
+      console.error('[GET] Error:', error);
+      return res.status(500).json({ error: 'Failed to fetch submissions' });
+    }
+  }
+
+  return res.status(405).json({ error: 'Method not allowed' });
 }
