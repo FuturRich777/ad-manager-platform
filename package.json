@@ -9,6 +9,7 @@
   ],
   "dependencies": {
     "jspdf": "^2.5.1",
+    "puppeteer": "^21.0.0",
     "resend": "^3.0.0"
   },
   "scripts": {
