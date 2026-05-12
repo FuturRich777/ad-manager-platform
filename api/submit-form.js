@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import fs from 'fs';
 import path from 'path';
+import PDFDocument from 'pdfkit';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -73,6 +74,58 @@ function prefillFormHTML(formHTML, data) {
   return html;
 }
 
+function generatePDF(data) {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument();
+    const chunks = [];
+
+    doc.on('data', chunk => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    doc.fontSize(18).text('Client Intake Form', { underline: true }).moveDown();
+    doc.fontSize(10);
+
+    const fields = [
+      ['Full Name', data.full_name],
+      ['Business Name', data.business_name],
+      ['Email', data.email],
+      ['Phone', data.phone],
+      ['Website', data.website],
+      ['Service Area', data.service_area],
+      ['Social Links', data.social_links],
+      ['Content Purpose', data.content_purpose],
+      ['30-90 Day Goals', data.goals_30_90],
+      ['Success Picture', data.success_picture],
+      ['Main Offers', data.offers],
+      ['Ideal Customer', data.ideal_customer],
+      ['Differentiator', data.differentiator],
+      ['Brand Words', data.brand_words],
+      ['Inspiration', data.inspiration],
+      ['Brand Colors', data.brand_colors_hex],
+      ['Visual Style', data.visual_style],
+      ['Brand Assets', data.brand_assets_link],
+      ['Script Topics', data.script_topics],
+      ['Off Limits', data.off_limits],
+      ['Content Prefs', data.content_prefs],
+      ['On Camera Level', data.oncamera_level],
+      ['Filming Availability', data.filming_availability],
+      ['Ad Budget', data.ad_budget],
+      ['Relationship', data.relationship],
+      ['Anything Else', data.anything_else],
+    ];
+
+    fields.forEach(([label, value]) => {
+      if (value) {
+        doc.font('Helvetica-Bold').text(`${label}:`, { underline: true });
+        doc.font('Helvetica').text(String(value), { width: 500 }).moveDown(0.5);
+      }
+    });
+
+    doc.end();
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -81,36 +134,23 @@ export default async function handler(req, res) {
   const { full_name, business_name } = req.body;
 
   try {
-    const formPath = path.join(process.cwd(), 'public', 'index.html');
-    let formHTML;
-
-    try {
-      formHTML = fs.readFileSync(formPath, 'utf-8');
-    } catch {
-      formHTML = fs.readFileSync(path.join(process.cwd(), 'minex-intake-form-email.html'), 'utf-8');
-    }
-
-    const filledFormHTML = prefillFormHTML(formHTML, req.body);
-    const htmlFilename = `${(business_name || 'form').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_intake_${new Date().toISOString().split('T')[0]}.html`;
-
-    // Remove download button and success message from email version since attachment is included
-    const emailFormHTML = filledFormHTML.replace(/<button[^>]*id="downloadBtn"[^>]*>[\s\S]*?<\/button>/g, '');
+    const pdfBuffer = await generatePDF(req.body);
+    const filename = `${(business_name || 'form').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_intake_${new Date().toISOString().split('T')[0]}.pdf`;
 
     await resend.emails.send({
       from: 'onboarding@resend.dev',
       to: 'olivier@minexai.ca',
       subject: `New Client Intake: ${full_name || 'Unknown'} - ${business_name || 'Unknown'}`,
-      html: emailFormHTML,
+      html: `<h2>New Client Intake Submission</h2><p>A PDF of the completed form is attached below.</p>`,
       attachments: [{
-        filename: htmlFilename,
-        content: Buffer.from(filledFormHTML),
+        filename: filename,
+        content: pdfBuffer,
       }],
     });
 
     return res.status(200).json({ success: true, message: 'Form submitted successfully' });
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Error:', error);
     return res.status(500).json({ error: error.message || 'Failed to submit form' });
   }
 }
-// Force redeploy

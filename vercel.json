@@ -1,9 +1,4 @@
 {
   "buildCommand": "bash build.sh",
-  "outputDirectory": "public",
-  "installCommand": "npm install",
-  "public": true,
-  "env": {
-    "REDEPLOY_TIMESTAMP": "2026-05-09T12:01:00Z"
-  }
+  "installCommand": "npm install"
 }
