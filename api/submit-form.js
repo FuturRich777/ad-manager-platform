@@ -1,7 +1,5 @@
 import { Resend } from 'resend';
-import fs from 'fs';
-import path from 'path';
-import { generatePdf } from 'html-pdf-node';
+import { jsPDF } from 'jspdf';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -15,67 +13,18 @@ function escapeHtml(text) {
     .replace(/'/g, '&#039;');
 }
 
-function prefillFormHTML(formHTML, data) {
-  let html = formHTML;
+function generatePDFBuffer(data) {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 10;
+  const lineHeight = 7;
+  let yPosition = margin + 10;
 
-  const fieldMap = {
-    'full_name': data.full_name,
-    'business_name': data.business_name,
-    'email': data.email,
-    'phone': data.phone,
-    'website': data.website,
-    'service_area': data.service_area,
-    'social_links': data.social_links,
-    'content_purpose': data.content_purpose,
-    'goals_30_90': data.goals_30_90,
-    'success_picture': data.success_picture,
-    'offers': data.offers,
-    'ideal_customer': data.ideal_customer,
-    'differentiator': data.differentiator,
-    'brand_words': data.brand_words,
-    'inspiration': data.inspiration,
-    'brand_colors_hex': data.brand_colors_hex,
-    'brand_color_1': data.brand_color_1,
-    'visual_style': data.visual_style,
-    'brand_assets_link': data.brand_assets_link,
-    'script_topics': data.script_topics,
-    'off_limits': data.off_limits,
-    'content_prefs': data.content_prefs,
-    'oncamera_level': data.oncamera_level,
-    'filming_availability': data.filming_availability,
-    'ad_budget': data.ad_budget,
-    'relationship': data.relationship,
-    'anything_else': data.anything_else,
-    'signature': data.signature,
-    'representative_signature': data.representative_signature,
-    'platform_logins': data.platform_logins,
-  };
+  doc.setFontSize(16);
+  doc.text('Client Intake Form', margin, yPosition);
+  yPosition += 15;
 
-  for (const [fieldName, value] of Object.entries(fieldMap)) {
-    if (value) {
-      const escaped = escapeHtml(value);
-      html = html.replace(
-        new RegExp(`name="${fieldName}"([^>]*)>`, 'g'),
-        `name="${fieldName}"$1 value="${escaped}">`
-      );
-      html = html.replace(
-        new RegExp(`<textarea name="${fieldName}"([^>]*)>([^<]*)`, 'g'),
-        `<textarea name="${fieldName}"$1>${escaped}`
-      );
-    }
-  }
-
-  html = html.replace(/<form/g, '<form onsubmit="return false"');
-  html = html.replace(/<input/g, '<input disabled');
-  html = html.replace(/<textarea/g, '<textarea disabled');
-  html = html.replace(/<select/g, '<select disabled');
-  html = html.replace(/<button/g, '<button disabled');
-
-  return html;
-}
-
-async function generatePDF(data) {
-  let html = '<h1>Client Intake Form</h1>';
+  doc.setFontSize(10);
 
   const fields = [
     ['Full Name', data.full_name],
@@ -106,20 +55,28 @@ async function generatePDF(data) {
     ['Anything Else', data.anything_else],
   ];
 
-  fields.forEach(([label, value]) => {
+  for (const [label, value] of fields) {
     if (value) {
-      html += `<p><strong>${label}:</strong> ${escapeHtml(String(value))}</p>`;
-    }
-  });
+      doc.setFont(undefined, 'bold');
+      doc.text(`${label}:`, margin, yPosition);
+      yPosition += lineHeight;
 
-  try {
-    const pdfBuffer = await generatePdf({ content: html });
-    return pdfBuffer;
-  } catch (error) {
-    console.error('PDF generation error:', error);
-    throw error;
+      doc.setFont(undefined, 'normal');
+      const text = String(value);
+      const splitText = doc.splitTextToSize(text, pageWidth - 2 * margin);
+      doc.text(splitText, margin, yPosition);
+      yPosition += splitText.length * lineHeight + 2;
+
+      if (yPosition > doc.internal.pageSize.getHeight() - margin) {
+        doc.addPage();
+        yPosition = margin;
+      }
+    }
   }
+
+  return Buffer.from(doc.output('arraybuffer'));
 }
+
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -129,7 +86,7 @@ export default async function handler(req, res) {
   const { full_name, business_name } = req.body;
 
   try {
-    const pdfBuffer = await generatePDF(req.body);
+    const pdfBuffer = generatePDFBuffer(req.body);
     const filename = `${(business_name || 'form').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_intake_${new Date().toISOString().split('T')[0]}.pdf`;
 
     await resend.emails.send({

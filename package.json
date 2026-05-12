@@ -8,8 +8,7 @@
     "frontend"
   ],
   "dependencies": {
-    "html-pdf-node": "^1.0.8",
-    "pdfkit": "^0.13.0",
+    "jspdf": "^2.5.1",
     "resend": "^3.0.0"
   },
   "scripts": {
