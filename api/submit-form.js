@@ -14,67 +14,75 @@ function escapeHtml(text) {
 }
 
 function generatePDFBuffer(data) {
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 10;
-  const lineHeight = 7;
-  let yPosition = margin + 10;
+  try {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 10;
+    const lineHeight = 7;
+    let yPosition = margin + 10;
 
-  doc.setFontSize(16);
-  doc.text('Client Intake Form', margin, yPosition);
-  yPosition += 15;
+    doc.setFontSize(16);
+    doc.text('Client Intake Form', margin, yPosition);
+    yPosition += 15;
 
-  doc.setFontSize(10);
+    doc.setFontSize(10);
 
-  const fields = [
-    ['Full Name', data.full_name],
-    ['Business Name', data.business_name],
-    ['Email', data.email],
-    ['Phone', data.phone],
-    ['Website', data.website],
-    ['Service Area', data.service_area],
-    ['Social Links', data.social_links],
-    ['Content Purpose', data.content_purpose],
-    ['30-90 Day Goals', data.goals_30_90],
-    ['Success Picture', data.success_picture],
-    ['Main Offers', data.offers],
-    ['Ideal Customer', data.ideal_customer],
-    ['Differentiator', data.differentiator],
-    ['Brand Words', data.brand_words],
-    ['Inspiration', data.inspiration],
-    ['Brand Colors', data.brand_colors_hex],
-    ['Visual Style', data.visual_style],
-    ['Brand Assets', data.brand_assets_link],
-    ['Script Topics', data.script_topics],
-    ['Off Limits', data.off_limits],
-    ['Content Prefs', data.content_prefs],
-    ['On Camera Level', data.oncamera_level],
-    ['Filming Availability', data.filming_availability],
-    ['Ad Budget', data.ad_budget],
-    ['Relationship', data.relationship],
-    ['Anything Else', data.anything_else],
-  ];
+    const fields = [
+      ['Full Name', data.full_name],
+      ['Business Name', data.business_name],
+      ['Email', data.email],
+      ['Phone', data.phone],
+      ['Website', data.website],
+      ['Service Area', data.service_area],
+      ['Social Links', data.social_links],
+      ['Content Purpose', data.content_purpose],
+      ['30-90 Day Goals', data.goals_30_90],
+      ['Success Picture', data.success_picture],
+      ['Main Offers', data.offers],
+      ['Ideal Customer', data.ideal_customer],
+      ['Differentiator', data.differentiator],
+      ['Brand Words', data.brand_words],
+      ['Inspiration', data.inspiration],
+      ['Brand Colors', data.brand_colors_hex],
+      ['Visual Style', data.visual_style],
+      ['Brand Assets', data.brand_assets_link],
+      ['Script Topics', data.script_topics],
+      ['Off Limits', data.off_limits],
+      ['Content Prefs', data.content_prefs],
+      ['On Camera Level', data.oncamera_level],
+      ['Filming Availability', data.filming_availability],
+      ['Ad Budget', data.ad_budget],
+      ['Relationship', data.relationship],
+      ['Anything Else', data.anything_else],
+    ];
 
-  for (const [label, value] of fields) {
-    if (value) {
-      doc.setFont(undefined, 'bold');
-      doc.text(`${label}:`, margin, yPosition);
-      yPosition += lineHeight;
+    for (const [label, value] of fields) {
+      if (value) {
+        doc.setFont(undefined, 'bold');
+        doc.text(`${label}:`, margin, yPosition);
+        yPosition += lineHeight;
 
-      doc.setFont(undefined, 'normal');
-      const text = String(value);
-      const splitText = doc.splitTextToSize(text, pageWidth - 2 * margin);
-      doc.text(splitText, margin, yPosition);
-      yPosition += splitText.length * lineHeight + 2;
+        doc.setFont(undefined, 'normal');
+        const text = String(value);
+        const splitText = doc.splitTextToSize(text, pageWidth - 2 * margin);
+        doc.text(splitText, margin, yPosition);
+        yPosition += splitText.length * lineHeight + 2;
 
-      if (yPosition > doc.internal.pageSize.getHeight() - margin) {
-        doc.addPage();
-        yPosition = margin;
+        if (yPosition > doc.internal.pageSize.getHeight() - margin) {
+          doc.addPage();
+          yPosition = margin;
+        }
       }
     }
-  }
 
-  return Buffer.from(doc.output('arraybuffer'));
+    const pdfData = doc.output('arraybuffer');
+    const buffer = Buffer.from(pdfData);
+    console.log('PDF generated:', buffer.length, 'bytes');
+    return buffer;
+  } catch (err) {
+    console.error('PDF generation failed:', err);
+    throw new Error(`PDF generation error: ${err.message}`);
+  }
 }
 
 
