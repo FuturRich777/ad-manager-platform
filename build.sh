@@ -31,6 +31,12 @@ rm -f public/index.html
 # Copy the form file to public
 cp minex-intake-form-email.html public/index.html
 
+# Preserve submissions dashboard
+if [ ! -d public/submissions ]; then
+  mkdir -p public/submissions
+  cp public/submissions.html public/submissions/index.html
+fi
+
 # Restore admin.html and dashboard.html
 if [ -n "$ADMIN_BACKUP" ] && [ -f "$ADMIN_BACKUP" ]; then
   cp "$ADMIN_BACKUP" public/admin.html
