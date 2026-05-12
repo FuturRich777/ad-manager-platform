@@ -1,12 +1,5 @@
 {
   "buildCommand": "bash build.sh && npm install",
   "installCommand": "npm install",
-  "public": "public",
-  "routes": [
-    {
-      "src": "/submissions",
-      "dest": "/api/submissions.js",
-      "methods": ["GET"]
-    }
-  ]
+  "public": "public"
 }
