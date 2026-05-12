@@ -144,7 +144,7 @@ export default async function handler(req, res) {
       html: `<h2>New Client Intake Submission</h2><p>A PDF of the completed form is attached below.</p>`,
       attachments: [{
         filename: filename,
-        content: pdfBuffer,
+        content: pdfBuffer.toString('base64'),
       }],
     });
 
