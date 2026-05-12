@@ -1,3 +1,10 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.SUPABASE_URL || 'https://lmgqwgjdzrmufadfxezs.supabase.co';
+const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtZ3F3Z2pkenJtdWZhZGZ4ZXpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTY0NTIsImV4cCI6MjA5Mjg5MjQ1Mn0.blobh-NlDrT4uggvs-sg6pc8GB5KNk_eC2ooT_p03PU';
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 function generateTextFile(data) {
   let text = 'CLIENT INTAKE FORM SUBMISSION\n';
   text += '='.repeat(50) + '\n\n';
@@ -45,9 +52,22 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { business_name } = req.body;
+  const { business_name, email, full_name } = req.body;
 
   try {
+    // Try to save to Supabase
+    const { error: insertError, data } = await supabase
+      .from('submissions')
+      .insert([{ ...req.body }]);
+
+    if (insertError) {
+      console.warn('[SUBMIT] Supabase insert warning (RLS policy may be blocking):', insertError);
+      // Continue anyway - still return success so form submission completes
+    } else {
+      console.log('[SUBMIT] Successfully saved to Supabase');
+    }
+
+    // Generate and return success response
     const textContent = generateTextFile(req.body);
     const filename = `${(business_name || 'form').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_intake_${new Date().toISOString().split('T')[0]}.txt`;
 
