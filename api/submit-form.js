@@ -1,46 +1,46 @@
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
-const dataDir = '/tmp/minex-submissions';
+const supabaseUrl = 'https://lmgqwgjdzrmufadfxezs.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtZ3F3Z2pkenJtdWZhZGZ4ZXpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTY0NTIsImV4cCI6MjA5Mjg5MjQ1Mn0.blobh-NlDrT4uggvs-sg6pc8GB5KNk_eC2ooT_p03PU';
 
-// Ensure data directory exists
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
-      const data = {
-        ...req.body,
-        id: Date.now(),
-        created_at: new Date().toISOString(),
-      };
+      const { error, data } = await supabase
+        .from('submissions')
+        .insert([{ ...req.body }]);
 
-      const filePath = path.join(dataDir, `${data.id}.json`);
-      fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+      if (error) {
+        console.error('[SUBMIT] Error:', error);
+        return res.status(500).json({ error: error.message });
+      }
 
-      console.log('[SUBMIT] Saved submission:', data.id);
-
-      return res.status(200).json({ success: true, id: data.id });
+      console.log('[SUBMIT] Saved to Supabase:', data);
+      return res.status(200).json({ success: true, data });
     } catch (error) {
       console.error('[SUBMIT] Error:', error);
-      return res.status(500).json({ error: 'Failed to save submission' });
+      return res.status(500).json({ error: error.message });
     }
   }
 
   if (req.method === 'GET') {
     try {
-      const files = fs.readdirSync(dataDir);
-      const submissions = files
-        .filter(f => f.endsWith('.json'))
-        .map(f => JSON.parse(fs.readFileSync(path.join(dataDir, f), 'utf8')))
-        .sort((a, b) => b.id - a.id);
+      const { data, error } = await supabase
+        .from('submissions')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      return res.status(200).json(submissions);
+      if (error) {
+        console.error('[GET] Error:', error);
+        return res.status(500).json({ error: error.message });
+      }
+
+      return res.status(200).json(data || []);
     } catch (error) {
       console.error('[GET] Error:', error);
-      return res.status(500).json({ error: 'Failed to fetch submissions' });
+      return res.status(500).json({ error: error.message });
     }
   }
 
